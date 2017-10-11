@@ -24,7 +24,7 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```gradle
 dependencies {
     // ProximitySDK SDK
-    compile 'com.jointag:proximitysdk:1.2.0'
+    compile 'com.jointag:proximitysdk:1.3.0'
 }
 ```
 
@@ -32,16 +32,14 @@ dependencies {
 
 - The library requires [Google Play Services](https://developers.google.com/android/guides/overview#the_google_play_services_apk) framework installed on the device, and the [Google Play Services Ads](https://developers.google.com/android/guides/setup) library (version >= 7.0) compiled into the project.
 - The library requires [Android Support Library](https://developer.android.com/topic/libraries/support-library/index.html) library (version >= 25) compiled into the project.
-- The library required [Glide](https://github.com/bumptech/glide) library compiled into the project.
 
 To include the required libraries add the following to your dependencies.
 
 ```gradle
 dependencies {
-    compile 'com.android.support:appcompat-v7:26.0.2'
-    compile 'com.google.android.gms:play-services-ads:11.0.2'
-    compile 'com.github.bumptech.glide:glide:4.1.1'
-    compile 'com.jointag:proximitysdk:1.2.0'
+    compile 'com.android.support:appcompat-v7:25.0.0'
+    compile 'com.google.android.gms:play-services-ads:7.0.0'
+    compile 'com.jointag:proximitysdk:1.3.0'
 }
 ```
 
@@ -79,7 +77,7 @@ ProximitySDK.getInstance().getInstallationId();
 
 ## Customizing the notifications
 
-It is possibile to to customize the look (icon and title) of the advertising notifications.
+It is possibile to to customize the look (icon and title) of the advertising notifications and the monitoring notification.
 
 In order to customize the icon, include in your project a drawable named `ic_stat_jointag_default`.
 
@@ -93,4 +91,14 @@ If you prefer to create your own icons, make sure to generate the icon for the f
 - xxhdpi
 - xxxhdpi
 
-In order to customize the title, include in your project a string resource named `jointag_notification_title`.
+In order to customize the title for all notifications, include in your project a string resource named `jointag_notification_title`.
+
+To customize the message of the monitoring notification, include in your project a string resource named `jointag_notification_message`.
+
+## Receive custom events
+
+You can receive custom advertising events (if configured in the backend) to integrate application-specific features by registering a `CustomActionListener` object using the `addCustomActionListener` method of `ProximitySDK`.
+
+When the application user interacts with a custom-action notification, the `onCustomAction` method is invoked by passing a `payload` string object.
+
+Since the `CustomActionListener` object is retained by `ProximitySDK`, remember to remove the listener when the owning instance is being deallocated to avoid unwanted retaining or NullPointerException. It is therefore good practice to use a long-life object as CustomActionListener, such as the Application object.
