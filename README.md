@@ -24,7 +24,7 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```gradle
 dependencies {
     // ProximitySDK SDK
-    compile 'com.jointag:proximitysdk:1.3.0'
+    compile 'com.jointag:proximitysdk:1.3.1'
 }
 ```
 
@@ -39,7 +39,7 @@ To include the required libraries add the following to your dependencies.
 dependencies {
     compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'com.google.android.gms:play-services-ads:7.0.0'
-    compile 'com.jointag:proximitysdk:1.3.0'
+    compile 'com.jointag:proximitysdk:1.3.1'
 }
 ```
 
