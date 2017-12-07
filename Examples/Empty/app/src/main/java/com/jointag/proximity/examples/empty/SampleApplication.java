@@ -12,7 +12,7 @@ import com.jointag.proximity.util.Logger;
  */
 public class SampleApplication extends Application implements CustomActionListener {
     public static final String API_KEY = "59648a8a3ee5e036568873db";
-    public static final String SECRET = "N2NiN2JkMjMtNGQ0Zi00ZGE2LTgwNDEtN2Q5YTY0MjY1ZWU2";
+    public static final String SECRET = "qxUe5vECy5DPeXmeFhPHOerVYdVDg34/StHkV3IPNdA927v4";
 
     @Override
     public void onCreate() {
