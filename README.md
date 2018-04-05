@@ -54,9 +54,9 @@ To include the required libraries add the following to your dependencies.
 
 ```gradle
 dependencies {
-    compile 'com.android.support:appcompat-v7:25.0.0'
-    compile 'com.google.android.gms:play-services-ads:7.0.0'
-    compile 'com.jointag:proximitysdk:1.3.+'
+    implementation 'com.android.support:appcompat-v7:27.1.0'
+    implementation 'com.google.android.gms:play-services-ads:12.0.1'
+    implementation 'com.jointag:proximitysdk:1.3.+'
 }
 ```
 
