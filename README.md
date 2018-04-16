@@ -119,12 +119,7 @@ To customize the message of the monitoring notification, include in your project
 
 > **Note**: with some versions of the android build tool a duplicate resource error may arise during the resource merging phase of the build. In this case it is sufficient to include the new drawable resources using a version qualifier. Eg:
 >
-> ```drawable-hdpi-v7/ic_stat_jointag_default.png
-drawable-mdpi-v7/ic_stat_jointag_default.png
-drawable-xhdpi-v7/ic_stat_jointag_default.png
-drawable-xxhdpi-v7/ic_stat_jointag_default.png
-drawable-xxxhdpi-v7/ic_stat_jointag_default.png
-```
+> `drawable-hdpi-v7/ic_stat_jointag_default.png`, `drawable-mdpi-v7/ic_stat_jointag_default.png`, `drawable-xhdpi-v7/ic_stat_jointag_default.png`, etc…
 
 ## Receive custom events
 
