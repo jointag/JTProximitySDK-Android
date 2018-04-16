@@ -1,7 +1,7 @@
 package com.jointag.proximity.examples.empty;
 
 import android.app.Application;
-import android.util.Log;
+import android.widget.Toast;
 
 import com.jointag.proximity.ProximitySDK;
 import com.jointag.proximity.listener.CustomActionListener;
@@ -17,7 +17,7 @@ public class SampleApplication extends Application implements CustomActionListen
     @Override
     public void onCreate() {
         super.onCreate();
-        Logger.setPrefix("Sample.");
+        Logger.setTag("SampleApplication");
         Logger.setLogLevel(Logger.VERBOSE);
         ProximitySDK.init(this, API_KEY, SECRET);
         ProximitySDK.getInstance().addCustomActionListener(this);
@@ -25,6 +25,6 @@ public class SampleApplication extends Application implements CustomActionListen
 
     @Override
     public void onCustomAction(String s) {
-        Log.d("SampleApplication", "Received custom action " + s);
+        Toast.makeText(this, "Received custom action " + s, Toast.LENGTH_LONG).show();
     }
 }

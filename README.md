@@ -18,9 +18,9 @@ This library allows you to integrate Jointag Proximity into your Android app.
 
 ## Requirements
 
-Minimum API level: 14 (Android 4.0)
+Minimum API level: `14` (Android 4.0)
 
-_**Warning**_: _to use functionalities that rely on BLE, the minimum API level is 18 (Android 4.3). If the device API level is between 14 and 17 the SDK won't be able to access BLE and therefore it will be not possible to obtain data from BLE devices._
+> **Note**: to use functionalities that rely on BLE, the minimum API level is `18` (Android 4.3). If the device API level is between `14` and `17` the SDK won't be able to access BLE and therefore it will be not possible to obtain data from BLE devices.
 
 ## Installation
 
@@ -41,22 +41,23 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```gradle
 dependencies {
     // ProximitySDK SDK
-    compile 'com.jointag:proximitysdk:1.3.+'
+    compile 'com.jointag:proximitysdk:1.4.+'
 }
 ```
 
 ### Other dependencies
 
-- The library requires [Google Play Services](https://developers.google.com/android/guides/overview#the_google_play_services_apk) framework installed on the device, and the [Google Play Services Ads](https://developers.google.com/android/guides/setup) library (version >= 7.0) compiled into the project.
-- The library requires [Android Support Library](https://developer.android.com/topic/libraries/support-library/index.html) library (version >= 25) compiled into the project.
+- The library requires [Google Play Services](https://developers.google.com/android/guides/overview#the_google_play_services_apk) framework installed on the device, and the [Google Play Services Ads and Location](https://developers.google.com/android/guides/setup) library (version >= `11.6.0`) compiled into the project.
+- The library requires [Android Support Library](https://developer.android.com/topic/libraries/support-library/index.html) library (version >= `25.2.0`) compiled into the project.
 
 To include the required libraries add the following to your dependencies.
 
 ```gradle
 dependencies {
-    compile 'com.android.support:appcompat-v7:25.0.0'
-    compile 'com.google.android.gms:play-services-ads:7.0.0'
-    compile 'com.jointag:proximitysdk:1.3.+'
+    compile 'com.android.support:appcompat-v7:25.2.0'
+    compile 'com.google.android.gms:play-services-ads:11.6.0'
+    compile 'com.google.android.gms:play-services-location:11.6.0'
+    compile 'com.jointag:proximitysdk:1.4.+'
 }
 ```
 
@@ -80,7 +81,7 @@ ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
 
 ### Permissions and hardware requirements
 
-This SDK uses location permissions. For application running on Android 6.0 or later, the request for [`ACCESS_FINE_LOCATION`](https://developer.android.com/reference/android/Manifest.permission.html#ACCESS_FINE_LOCATION) or [`ACCESS_COARSE_LOCATION`](https://developer.android.com/reference/android/Manifest.permission.html#ACCESS_COARSE_LOCATION) permission has to be implemented by the application that includes the SDK. The request can be implemented in any point of the application, but it's recommended to ask the user for location permission as soon as possible, because until the permission is not granted the SDK can't enable proximity features involving GPS and beacons. If the permission is not granted the proximity features involving GPS and beacons will not be enabled.
+This SDK uses location permissions. For application running on **Android 6.0** or later (API level 23), the request for [`ACCESS_FINE_LOCATION`](https://developer.android.com/reference/android/Manifest.permission.html#ACCESS_FINE_LOCATION)(preferably) or [`ACCESS_COARSE_LOCATION`](https://developer.android.com/reference/android/Manifest.permission.html#ACCESS_COARSE_LOCATION) permission has to be implemented by the application that includes the SDK (see [Android 6.0 Changes](https://developer.android.com/about/versions/marshmallow/android-6.0-changes.html)). The request can be implemented in any point of the application, but it's recommended to ask the user for location permission as soon as possible, because until the permission is not granted the SDK can't enable proximity features involving GPS and beacons. If the permission is not granted the proximity features involving GPS and beacons will not be enabled.
 
 To implement the permission request dialog in your application follow the official [Requesting Permissions at Run Time](https://developer.android.com/training/permissions/requesting.html) documentation.
 
@@ -113,6 +114,17 @@ If you prefer to create your own icons, make sure to generate the icon for the f
 In order to customize the title for all notifications, include in your project a string resource named `jointag_notification_title`.
 
 To customize the message of the monitoring notification, include in your project a string resource named `jointag_notification_message`.
+
+---
+
+> **Note**: with some versions of the android build tool a duplicate resource error may arise during the resource merging phase of the build. In this case it is sufficient to include the new drawable resources using a version qualifier. Eg:
+>
+> ```drawable-hdpi-v7/ic_stat_jointag_default.png
+drawable-mdpi-v7/ic_stat_jointag_default.png
+drawable-xhdpi-v7/ic_stat_jointag_default.png
+drawable-xxhdpi-v7/ic_stat_jointag_default.png
+drawable-xxxhdpi-v7/ic_stat_jointag_default.png
+```
 
 ## Receive custom events
 
