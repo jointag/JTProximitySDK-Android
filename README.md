@@ -1,5 +1,8 @@
 # Jointag Proximity SDK for Android
 
+[![build status](https://git.hqhosting.it/jointag/proximity-platform/proximitysdk-android/badges/master/build.svg)](https://git.hqhosting.it/jointag/proximity-platform/proximitysdk-android/commits/master)
+[![coverage report](https://git.hqhosting.it/jointag/proximity-platform/proximitysdk-android/badges/master/coverage.svg)](https://git.hqhosting.it/jointag/proximity-platform/proximitysdk-android/commits/master)
+
 ## Table of Contents
 
 1. [Requirements](#user-content-requirements)
@@ -10,10 +13,10 @@
 3. [Initialization](#user-content-initialization)
     1. [Simple Initialization](#user-content-simple-initialization)
     2. [Permissions and hardware requirements](#user-content-permissions-and-hardware-requirements)
-    3. [Tracking users](#user-content-tracking-users)
-    4. [Customizing the notifications](#user-content-customizing-the-notifications)
+    3. [Background Jobs](#user-content-background-jobs)
+    4. [Tracking users](#user-content-tracking-users)
+    5. [Customizing the notifications](#user-content-customizing-the-notifications)
 4. [Receive custom events](#user-content-receive-custom-events)
-5. [Changes in v1.5.0](#user-content-changes-in-v150)
 
 This library allows you to integrate Jointag Proximity into your Android app.
 
@@ -35,7 +38,7 @@ the following lines to your build.gradle (Module: app) file:
 
 ```gradle
 repositories {
-    maven { url "https://artifactory.jointag.com/artifactory/jointag" }
+    maven { url "http://93.57.20.29:8081/artifactory/jointag" }
 }
 ```
 
@@ -46,7 +49,7 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```gradle
 dependencies {
     // ProximitySDK SDK
-    implementation 'com.jointag:proximitysdk:1.5.+'
+    implementation 'com.jointag:proximitysdk:1.6.+'
 }
 ```
 
@@ -61,7 +64,7 @@ To include the required libraries add the following to your dependencies.
 
 ```gradle
 dependencies {
-    implementation 'com.jointag:proximitysdk:1.5.+'
+    implementation 'com.jointag:proximitysdk:1.6.+'
     implementation 'com.android.support:appcompat-v7:25.2.0'
     implementation 'com.google.android.gms:play-services-ads:11.6.0'
 }
@@ -71,10 +74,15 @@ dependencies {
 
 ### Simple Initialization
 
-Add the following to the `onCreate` method in your `Application` class.
+Add the following call to `ProximitySDK.init()` to the `onCreate()` method in
+your `Application` class.
 
 ```java
-ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
+@Override
+public void onCreate() {
+    super.onCreate();
+    ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
+}
 ```
 
 During the development process it's possible to initialize the SDK in debug
@@ -83,8 +91,11 @@ test data in production databases. To initialize the SDK in debug mode please
 add the following lines of code instead.
 
 ```java
-ProximitySDK.setDebug(true);
-ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
+@Override
+public void onCreate() {
+    ProximitySDK.setDebug(true);
+    ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
+}
 ```
 
 ### Permissions and hardware requirements
@@ -103,9 +114,50 @@ To implement the permission request dialog in your application follow the
 official [Requesting Permissions at Run Time][requesting-permissions]
 documentation.
 
+Only for the first application run, after having requested the permissions to
+the user and the user has granted the required permissions (tipically in the
+`onRequestPermissionsResult` callback of the Activity), the monitoring process
+can be resumed by calling the `ProximitySDK#checkPendingPermissions` method.
+
+Eg.
+
+```java
+@Override
+public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        ProximitySDK.getInstance().checkPendingPermissions();
+    }
+}
+```
+
 The proximity features require the bluetooth to be enabled, if the bluetooth is
 off the SDK will not be able to retrieve any proximity information about
 beacons.
+
+### Background Jobs
+
+On Android 5.0 or later, the SDK use [Job Services][job-services] to perform
+scheduled tasks. Since the JobScheduler need to identify each jobs with a unique
+ID, the SDK gives each job an identifier starting from a predefined constant
+(`182734746`).
+
+If for any reason this identifier should collide with any one used by the
+application or by another library, it is possible to change the starting value
+for the SDK job identifiers by __calling `Scheduler.setBaseJobId` before the
+`ProximitySDK.init` call__.
+
+```java
+import com.jointag.proximity.scheduler.Scheduler;
+
+...
+int newJobID = 123456;
+Scheduler.setBaseJobId(newJobID);
+
+ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
+...
+
+```
 
 ### Tracking users
 
@@ -145,9 +197,6 @@ following densities:
 In order to customize the title for all notifications, include in your project a
 string resource named `jointag_notification_title`.
 
-To customize the message of the monitoring notification, include in your project
-a string resource named `jointag_notification_message`.
-
 ---
 
 > **Note**: with some versions of the android build tool a duplicate resource
@@ -175,46 +224,6 @@ Since the `CustomActionListener` object is retained by `ProximitySDK`, remember
 to remove the listener when the owning instance is being deallocated to avoid
 unwanted retaining or NullPointerException. It is therefore good practice to use
 a long-life object as CustomActionListener, such as the Application object.
-
-## Changes in v1.5.0
-
-### Permission Request
-
-Only for the first application run, after having requested the permissions to
-the user and the user has granted the required permissions (tipically in the
-`onRequestPermissionsResult` callback of the Activity), the monitoring process
-can be resumed by calling the `ProximitySDK#checkPendingPermissions` method.
-
-Eg.
-
-```java
-@Override
-public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-        ProximitySDK.getInstance().checkPendingPermissions();
-    }
-}
-```
-
-### Background Jobs
-
-On Android 5.0 or later, the SDK use [Job Services][job-services] to perform
-scheduled tasks. Since the JobScheduler need to identify each jobs with a unique
-ID, the SDK gives each job an identifier starting from a predefined constant
-(`182734746`). If for any reason this identifier should collide with any one
-used by the application or by another library, it is possible to change the
-starting value for the SDK job identifiers by calling
-
-```java
-import com.jointag.proximity.scheduler.Scheduler;
-
-...
-int newJobID = 100;
-Scheduler.setBaseJobId(newJobID);
-...
-
-```
 
 ---
 
