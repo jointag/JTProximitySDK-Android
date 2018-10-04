@@ -67,6 +67,7 @@ dependencies {
     implementation 'com.jointag:proximitysdk:1.6.+'
     implementation 'com.android.support:appcompat-v7:25.2.0'
     implementation 'com.google.android.gms:play-services-ads:11.6.0'
+    implementation 'com.google.android.gms:play-services-location:11.6.0'
 }
 ```
 
