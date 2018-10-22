@@ -1,8 +1,5 @@
 # Jointag Proximity SDK for Android
 
-[![build status](https://git.hqhosting.it/jointag/proximity-platform/proximitysdk-android/badges/master/build.svg)](https://git.hqhosting.it/jointag/proximity-platform/proximitysdk-android/commits/master)
-[![coverage report](https://git.hqhosting.it/jointag/proximity-platform/proximitysdk-android/badges/master/coverage.svg)](https://git.hqhosting.it/jointag/proximity-platform/proximitysdk-android/commits/master)
-
 ## Table of Contents
 
 1. [Requirements](#user-content-requirements)
@@ -82,19 +79,6 @@ your `Application` class.
 @Override
 public void onCreate() {
     super.onCreate();
-    ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
-}
-```
-
-During the development process it's possible to initialize the SDK in debug
-mode. This way all the data will be sent to a sandbox server, preventing to put
-test data in production databases. To initialize the SDK in debug mode please
-add the following lines of code instead.
-
-```java
-@Override
-public void onCreate() {
-    ProximitySDK.setDebug(true);
     ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
 }
 ```
