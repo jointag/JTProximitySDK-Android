@@ -35,7 +35,7 @@ the following lines to your build.gradle (Module: app) file:
 
 ```gradle
 repositories {
-    maven { url "http://93.57.20.29:8081/artifactory/jointag" }
+    maven { url "https://artifactory.jointag.com/artifactory/jointag" }
 }
 ```
 
