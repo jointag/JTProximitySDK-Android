@@ -10,10 +10,11 @@
 3. [Initialization](#user-content-initialization)
     1. [Simple Initialization](#user-content-simple-initialization)
     2. [Permissions and hardware requirements](#user-content-permissions-and-hardware-requirements)
-    3. [Background Jobs](#user-content-background-jobs)
-    4. [Tracking users](#user-content-tracking-users)
-    5. [Customizing the notifications](#user-content-customizing-the-notifications)
-4. [Receive custom events](#user-content-receive-custom-events)
+    3. [Tracking user identifier](#user-content-tracking-user-identifier)
+    4. [Customizing the notifications](#user-content-customizing-the-notifications)
+    5. [Receive custom events](#user-content-receive-custom-events)
+    6. [GDPR](#user-content-gdpr)
+    7. [Background Jobs ID](#user-content-background-jobs-id)
 
 This library allows you to integrate Jointag Proximity into your Android app.
 
@@ -46,23 +47,42 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```gradle
 dependencies {
     // ProximitySDK SDK
-    implementation 'com.jointag:proximitysdk:1.7.+'
+    implementation 'com.jointag:proximitysdk:1.8.+'
 }
 ```
 
 ### Other dependencies
 
-- The library requires [Google Play Services][google-play-services] library
-  (version >= `11.6.0`) compiled into the project.
-- The library requires [Android Support Library][android-support-library]
-  library (version >= `25.2.0`) compiled into the project.
+Additional dependencies should automatically be downloaded and included along
+with the library through the previous gradle declaration.
 
-To include the required libraries add the following to your dependencies.
+These dependencies comprise of the following:
+
+- [Google Play Services][google-play-services] Ads and Location libraries
+  (version >= `11.6.0`).
+- [Android Support Library][android-support-library]
+  library (version >= `26.1.0`). \*
+
+\* Keep in mind that the version of the _Android Support Library_ included in
+your application should *always* match the targetSdkVersion of the application
+itself, therefore you should manually declare the appcompat-v7 dependency in
+your build.gradle accordingly.
+
+Eg.
 
 ```gradle
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        …
+        targetSdkVersion 28
+    }
+}
+
 dependencies {
-    implementation 'com.jointag:proximitysdk:1.7.+'
-    implementation 'com.android.support:appcompat-v7:25.2.0'
+    implementation 'com.jointag:proximitysdk:1.8.+'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.google.android.gms:play-services-ads:11.6.0'
     implementation 'com.google.android.gms:play-services-location:11.6.0'
 }
@@ -76,33 +96,72 @@ Add the following call to `ProximitySDK.init()` to the `onCreate()` method in
 your `Application` class.
 
 ```java
-@Override
-public void onCreate() {
-    super.onCreate();
-    ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
+import com.jointag.proximity.ProximitySDK;
+import com.jointag.proximity.util.Logger;
+
+public class MyApplication extends Application {
+    public static final String API_KEY = "YOUR_API_KEY";
+    public static final String SECRET = "YOUR_API_SECRET";
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        // Set a custom logger tag  
+        Logger.setTag("MyApplication");
+        // Enable verbose logging
+        Logger.setLogLevel(Logger.VERBOSE);
+        // Enable if a IAB-compatible CMP library is present
+        ProximitySDK.enabledCmp();
+        // Initialize with your ApiKey / ApiSecret
+        ProximitySDK.init(this, API_KEY, SECRET);
+    }
 }
 ```
 
 ### Permissions and hardware requirements
 
-This SDK uses location permissions. For application running on Android 6.0 or
-later, the request for [`ACCESS_FINE_LOCATION`][access-fine-location] or
+This SDK uses user-location permissions to function. All required permissions
+are declared in the SDK AndroidManifest file, and automatically added to your
+application AndroidManifest when the library is included as a Gradle dependency
+(see [Add the library](#add-the-library)).
+
+**For application running on Android 6.0 or
+later**, the request for [`ACCESS_FINE_LOCATION`][access-fine-location] or
 [`ACCESS_COARSE_LOCATION`][access-coarse-location] permission has to be
 implemented by the application that includes the SDK. The request can be
 implemented in any point of the application, but it's recommended to ask the
 user for location permission as soon as possible, because until the permission
 is not granted the SDK can't enable proximity features involving GPS and
-beacons. If the permission is not granted the proximity features involving GPS
-and beacons will not be enabled.
+beacons.
+
+**For applications running Android 10.0 or later**, the additional permission
+`ACCESS_BACKGROUND_LOCATION` must be requested to the user for the SDK to work
+properly.
 
 To implement the permission request dialog in your application follow the
 official [Requesting Permissions at Run Time][requesting-permissions]
 documentation.
 
-Only for the first application run, after having requested the permissions to
-the user and the user has granted the required permissions (tipically in the
-`onRequestPermissionsResult` callback of the Activity), the monitoring process
-can be resumed by calling the `ProximitySDK#checkPendingPermissions` method.
+An example of implementation is the following:
+
+```java
+if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+    if (ActivityCompat.shouldShowRequestPermissionRationale(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
+        Toast.makeText(context, "Message explaining why granting the user location permission is usefull to the user", Toast.LENGTH_SHORT).show();
+    } else {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ActivityCompat.requestPermissions(context, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        } else {
+            ActivityCompat.requestPermissions(context, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        }
+    }
+}
+```
+
+After having requested the permissions to the user and the user has granted the
+required permissions (tipically in the `onRequestPermissionsResult` callback of
+the Activity), the monitoring process must be resumed by calling the
+`ProximitySDK#checkPendingPermissions` method.
 
 Eg.
 
@@ -116,44 +175,16 @@ public void onRequestPermissionsResult(int requestCode, @NonNull String[] permis
 }
 ```
 
-The proximity features require the bluetooth to be enabled, if the bluetooth is
-off the SDK will not be able to retrieve any proximity information about
-beacons.
-
-### Background Jobs
-
-On Android 5.0 or later, the SDK use [Job Services][job-services] to perform
-scheduled tasks. Since the JobScheduler need to identify each jobs with a unique
-ID, the SDK gives each job an identifier starting from a predefined constant
-(`182734746`).
-
-If for any reason this identifier should collide with any one used by the
-application or by another library, it is possible to change the starting value
-for the SDK job identifiers by __calling `Scheduler.setBaseJobId` before the
-`ProximitySDK.init` call__.
-
-```java
-import com.jointag.proximity.scheduler.Scheduler;
-
-...
-int newJobID = 123456;
-Scheduler.setBaseJobId(newJobID);
-
-ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
-...
-
-```
-
-### Tracking users
+### Tracking user identifier
 
 The SDK associates each tracked request with the *advertisingId*. If the
 *advertisingId* is not available due to a user permission denial, the device can
-be identified by the *installationId*. The *installationId* identifies in
-particular a specific installation of the SDK in a certain app on a certain
-device. If the app containing the SDK is uninstalled and then installed again
-the *installationId* will be a different one. You can retrieve the
-*installationId* after the initialization of the SDK anywhere in your code with
-the following line:
+be identified by the *installationId*. The *installationId* is a randomly
+generated UUID created during the first initialization that hence identifies a
+specific installation of the SDK for that application. If the app containing the
+SDK is uninstalled and then installed again the *installationId* will be a
+different one. You can retrieve the *installationId* after the initialization of
+the SDK anywhere in your code with the following line:
 
 ```java
 ProximitySDK.getInstance().getInstallationId();
@@ -196,7 +227,7 @@ drawable-xxhdpi-v7/ic_stat_jointag_default.png
 drawable-xxxhdpi-v7/ic_stat_jointag_default.png
 ```
 
-## Receive custom events
+### Receive custom events
 
 You can receive custom advertising events (if configured in the backend) to
 integrate application-specific features by registering a `CustomActionListener`
@@ -210,6 +241,62 @@ to remove the listener when the owning instance is being deallocated to avoid
 unwanted retaining or NullPointerException. It is therefore good practice to use
 a long-life object as CustomActionListener, such as the Application object.
 
+
+### GDPR
+
+As a publisher, you should integrate a Consent Management Platform (CMP) and
+request for vendor and purpose consents as outlined in IAB Europe’s Mobile
+In-App CMP API v1.0: Transparency & Consent Framework.
+
+To ensure that the SDK support the handling of user-consent preferences when a
+IAB-compatible CMP library is present, you must enable the feature through the
+`ProximitySDK.enabledCmp()` static method, which is `false` by default.
+
+This method must be called before the library initialization to guarantee an
+error-free process.
+
+You can find a reference implementation of a web-based CMP and the corresponding
+native wrappers here:
+https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework.
+
+If you are embedding your own custom CMP, the collected end user consent
+information needs to be stored in
+`PreferenceManager.getDefaultSharedPreferences` using the following keys:
+
+Key	Value
+
+| Key                              | Type    | Description                     |
+| -------------------------------- | ------- | ------------------------------- |
+| IABConsent_CMPPresent            | Boolean | (Set to `true` if a CMP that follows the iAB specification is present in the application) |
+| IABConsent_SubjectToGDPR         | String  | `1` - (subject to GDPR), `0` - (not subject to GDPR), `-1` - Unknown (default before initialization) |
+| IABConsent_ConsentString         | String  | (Base64-encoded consent string as defined in Consent string and vendor list format v1.1) |
+| IABConsent_ParsedPurposeConsents | String  | (String of `0`s and `1`s, where the character at position N indicates the consent status to purposeID N as defined in the Global Vendor List) |
+| IABConsent_ParsedVendorConsents  | String  | (String of `0`s and `1`s, where the character at position N indicates the consent status to vendorID N as defined in the Global Vendor List) |
+
+### Background Jobs ID
+
+On Android 5.0 or later, the SDK use [Job Services][job-services] to perform
+scheduled tasks. Since the JobScheduler need to identify each jobs with a unique
+ID, the SDK gives each job an identifier starting from a predefined constant
+(`182734746`).
+
+If for any reason this identifier should collide with any one used by the
+application or by another library, it is possible to change the starting value
+for the SDK job identifiers by __calling `Scheduler.setBaseJobId` before the
+`ProximitySDK.init` call__.
+
+```java
+import com.jointag.proximity.scheduler.Scheduler;
+
+...
+int newJobID = 123456;
+Scheduler.setBaseJobId(newJobID);
+
+ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
+...
+
+```
+
 ---
 
 [google-play-services]: https://developers.google.com/android/guides/overview#the_google_play_services_apk
@@ -217,5 +304,5 @@ a long-life object as CustomActionListener, such as the Application object.
 [requesting-permissions]: https://developer.android.com/training/permissions/requesting.html
 [access-fine-location]: https://developer.android.com/reference/android/manifest.permission.html#access-fine-location
 [access-coarse-location]: https://developer.android.com/reference/android/manifest.permission.html#access-coarse-location
-[android-asset-studio]: https://romannurik.github.io/androidassetstudio/icons-notification.html
+[android-asset-studio]: https://romannurik.github.io/AndroidAssetStudio/icons-notification.html
 [job-services]: https://developer.android.com/reference/android/app/job/jobscheduler
