@@ -126,8 +126,7 @@ application AndroidManifest when the library is included as a Gradle dependency
 (see [Add the library](#add-the-library)).
 
 **For application running on Android 6.0 or
-later**, the request for [`ACCESS_FINE_LOCATION`][access-fine-location] or
-[`ACCESS_COARSE_LOCATION`][access-coarse-location] permission has to be
+later**, the request for [`ACCESS_FINE_LOCATION`][access-fine-location] permission has to be
 implemented by the application that includes the SDK. The request can be
 implemented in any point of the application, but it's recommended to ask the
 user for location permission as soon as possible, because until the permission
@@ -145,7 +144,7 @@ documentation.
 An example of implementation is the following:
 
 ```java
-if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
     if (ActivityCompat.shouldShowRequestPermissionRationale(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
         Toast.makeText(context, "Message explaining why granting the user location permission is usefull to the user", Toast.LENGTH_SHORT).show();
     } else {
