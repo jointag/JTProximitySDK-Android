@@ -302,4 +302,4 @@ ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
 [android-asset-studio]: https://romannurik.github.io/AndroidAssetStudio/icons-notification.html
 [job-services]: https://developer.android.com/reference/android/app/job/jobscheduler
 [Kotlin]: https://kotlinlang.org/
-[Android Beacon Library]: https://github.com/AltBeacon/android-beacon-library
+[android-beacon-library]: https://github.com/AltBeacon/android-beacon-library
