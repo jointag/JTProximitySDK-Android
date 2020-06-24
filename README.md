@@ -20,10 +20,10 @@ This library allows you to integrate Jointag Proximity into your Android app.
 
 ## Requirements
 
-Minimum API level: `14` (Android 4.0)
+Minimum API level: `16` (Android 4.1)
 
 > **Note**: to use functionalities that rely on BLE, the minimum API level is
-> `18` (Android 4.3). If the device API level is between `14` and `17` the SDK
+> `18` (Android 4.3). If the device API level is between `16` and `17` the SDK
 > won't be able to access BLE and therefore it will be not possible to obtain
 > data from BLE devices.
 
@@ -47,44 +47,34 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```gradle
 dependencies {
     // ProximitySDK SDK
-    implementation 'com.jointag:proximitysdk:1.8.+'
+    implementation 'com.jointag:proximitysdk:1.9.+'
 }
 ```
 
 ### Other dependencies
 
-Additional dependencies should automatically be downloaded and included along
+Additional dependencies **should automatically be downloaded** and included along
 with the library through the previous gradle declaration.
 
-These dependencies comprise of the following:
+For the sake of clarity, the included dependencies comprise of the following:
 
-- [Google Play Services][google-play-services] Ads and Location libraries
-  (version >= `11.6.0`).
-- [Android Support Library][android-support-library]
-  library (version >= `26.1.0`). \*
+- [Kotlin][kotlin] Kotlin Std library (version >= 1.3.72)
+- [Google Play Services][google-play-services] Ads and Location libraries (version >= `16.0.0`).
+- [Android Support Library][android-support-library] library (version >= `28.0.0`).
+- [Android Beacon Library][android-beacon-library] An Android library to interact with beacons (version == `2.16.2`)
 
-\* Keep in mind that the version of the _Android Support Library_ included in
-your application should *always* match the targetSdkVersion of the application
-itself, therefore you should manually declare the appcompat-v7 dependency in
-your build.gradle accordingly.
-
-Eg.
+If you don't use Gradle to handle project building, or want to manually include the required libraries, add the following to your
+dependencies block in the app/build.gradle file.
 
 ```gradle
-
-android {
-    compileSdkVersion 28
-    defaultConfig {
-        …
-        targetSdkVersion 28
-    }
-}
-
 dependencies {
-    implementation 'com.jointag:proximitysdk:1.8.+'
+    <...>
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.72'
+    implementation 'org.altbeacon:android-beacon-library:2.16.2'
+    implementation 'com.google.android.gms:play-services-ads-identifier:16.0.0'
+    implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.google.android.gms:play-services-ads:11.6.0'
-    implementation 'com.google.android.gms:play-services-location:11.6.0'
+    <...>
 }
 ```
 
@@ -126,7 +116,8 @@ application AndroidManifest when the library is included as a Gradle dependency
 (see [Add the library](#add-the-library)).
 
 **For application running on Android 6.0 or
-later**, the request for [`ACCESS_FINE_LOCATION`][access-fine-location] permission has to be
+later**, the request for [`ACCESS_FINE_LOCATION`][access-fine-location] or
+[`ACCESS_COARSE_LOCATION`][access-coarse-location] permission has to be
 implemented by the application that includes the SDK. The request can be
 implemented in any point of the application, but it's recommended to ask the
 user for location permission as soon as possible, because until the permission
@@ -137,6 +128,11 @@ beacons.
 `ACCESS_BACKGROUND_LOCATION` must be requested to the user for the SDK to work
 properly.
 
+**For applications running Android 11.0 or later**, as per
+[official documentation](https://developer.android.com/preview/privacy), the
+location and background permission should be requested incrementally in separate
+calls.
+
 To implement the permission request dialog in your application follow the
 official [Requesting Permissions at Run Time][requesting-permissions]
 documentation.
@@ -144,7 +140,7 @@ documentation.
 An example of implementation is the following:
 
 ```java
-if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
     if (ActivityCompat.shouldShowRequestPermissionRationale(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
         Toast.makeText(context, "Message explaining why granting the user location permission is usefull to the user", Toast.LENGTH_SHORT).show();
     } else {
