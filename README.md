@@ -13,8 +13,9 @@
     3. [Tracking user identifier](#user-content-tracking-user-identifier)
     4. [Customizing the notifications](#user-content-customizing-the-notifications)
     5. [Receive custom events](#user-content-receive-custom-events)
-    6. [GDPR](#user-content-gdpr)
-    7. [Background Jobs ID](#user-content-background-jobs-id)
+    6. [Programmatically Disable Advertising](#programmatically-disable-advertising)
+    7. [GDPR](#user-content-gdpr)
+    8. [Background Jobs ID](#user-content-background-jobs-id)
 
 This library allows you to integrate Jointag Proximity into your Android app.
 
@@ -47,7 +48,7 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```gradle
 dependencies {
     // ProximitySDK SDK
-    implementation 'com.jointag:proximitysdk:1.9.+'
+    implementation 'com.jointag:proximitysdk:1.10.+'
 }
 ```
 
@@ -236,6 +237,21 @@ to remove the listener when the owning instance is being deallocated to avoid
 unwanted retaining or NullPointerException. It is therefore good practice to use
 a long-life object as CustomActionListener, such as the Application object.
 
+### Programmatically Disable Advertising
+
+It is possible to programmatically disable/enable the advertising delivery by
+setting the SDK's `advertisingEnabled` property to `false`. It is useful for
+example to disable the delivery of advertising for specific users of the
+application. In that case, simply change the property as soon as the user sign
+in or out of the application.
+The default value for the property is `true`.
+
+```java
+// disable advertising delivery
+ProximitySDK.getInstance().setAdvertisingEnabled(false);
+// enable advertising delivery
+ProximitySDK.getInstance().setAdvertisingEnabled(true);
+```
 
 ### GDPR
 
