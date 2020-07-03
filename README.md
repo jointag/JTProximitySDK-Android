@@ -48,7 +48,7 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```gradle
 dependencies {
     // ProximitySDK SDK
-    implementation 'com.jointag:proximitysdk:1.10.+'
+    implementation 'com.jointag:proximitysdk:1.10.1'
 }
 ```
 
