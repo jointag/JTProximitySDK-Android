@@ -48,7 +48,7 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```gradle
 dependencies {
     // ProximitySDK SDK
-    implementation 'com.jointag:proximitysdk:1.10.1'
+    implementation 'com.jointag:proximitysdk:1.9.+'
 }
 ```
 
@@ -101,8 +101,6 @@ public class MyApplication extends Application {
         Logger.setTag("MyApplication");
         // Enable verbose logging
         Logger.setLogLevel(Logger.VERBOSE);
-        // Enable if a IAB-compatible CMP library is present
-        ProximitySDK.enabledCmp();
         // Initialize with your ApiKey / ApiSecret
         ProximitySDK.init(this, API_KEY, SECRET);
     }
@@ -257,32 +255,14 @@ ProximitySDK.getInstance().setAdvertisingEnabled(true);
 
 As a publisher, you should integrate a Consent Management Platform (CMP) and
 request for vendor and purpose consents as outlined in IAB Europe’s Mobile
-In-App CMP API v1.0: Transparency & Consent Framework.
+In-App CMP API v2.0: Transparency & Consent Framework.
 
 To ensure that the SDK support the handling of user-consent preferences when a
 IAB-compatible CMP library is present, you must enable the feature through the
-`ProximitySDK.enabledCmp()` static method, which is `false` by default.
+`ProximitySDK.enabledCmp()` static method.
 
-This method must be called before the library initialization to guarantee an
-error-free process.
-
-You can find a reference implementation of a web-based CMP and the corresponding
-native wrappers here:
-https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework.
-
-If you are embedding your own custom CMP, the collected end user consent
-information needs to be stored in
-`PreferenceManager.getDefaultSharedPreferences` using the following keys:
-
-Key	Value
-
-| Key                              | Type    | Description                     |
-| -------------------------------- | ------- | ------------------------------- |
-| IABConsent_CMPPresent            | Boolean | (Set to `true` if a CMP that follows the iAB specification is present in the application) |
-| IABConsent_SubjectToGDPR         | String  | `1` - (subject to GDPR), `0` - (not subject to GDPR), `-1` - Unknown (default before initialization) |
-| IABConsent_ConsentString         | String  | (Base64-encoded consent string as defined in Consent string and vendor list format v1.1) |
-| IABConsent_ParsedPurposeConsents | String  | (String of `0`s and `1`s, where the character at position N indicates the consent status to purposeID N as defined in the Global Vendor List) |
-| IABConsent_ParsedVendorConsents  | String  | (String of `0`s and `1`s, where the character at position N indicates the consent status to vendorID N as defined in the Global Vendor List) |
+**This method must be called before the library initialization to guarantee an
+error-free process**.
 
 ### Background Jobs ID
 
@@ -317,5 +297,3 @@ ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
 [access-coarse-location]: https://developer.android.com/reference/android/manifest.permission.html#access-coarse-location
 [android-asset-studio]: https://romannurik.github.io/AndroidAssetStudio/icons-notification.html
 [job-services]: https://developer.android.com/reference/android/app/job/jobscheduler
-[Kotlin]: https://kotlinlang.org/
-[android-beacon-library]: https://github.com/AltBeacon/android-beacon-library
