@@ -290,8 +290,10 @@ ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
 
 ---
 
+[kotlin]: https://kotlinlang.org/
 [google-play-services]: https://developers.google.com/android/guides/overview#the_google_play_services_apk
 [android-support-library]: https://developer.android.com/topic/libraries/support-library/index.html
+[android-beacon-library]: https://github.com/AltBeacon/android-beacon-library
 [requesting-permissions]: https://developer.android.com/training/permissions/requesting.html
 [access-fine-location]: https://developer.android.com/reference/android/manifest.permission.html#access-fine-location
 [access-coarse-location]: https://developer.android.com/reference/android/manifest.permission.html#access-coarse-location
