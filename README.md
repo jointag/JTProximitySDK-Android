@@ -48,7 +48,7 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```gradle
 dependencies {
     // ProximitySDK SDK
-    implementation 'com.jointag:proximitysdk:1.9.+'
+    implementation 'com.jointag:proximitysdk:1.12.+'
 }
 ```
 
@@ -62,7 +62,7 @@ For the sake of clarity, the included dependencies comprise of the following:
 - [Kotlin][kotlin] Kotlin Std library (version >= 1.3.72)
 - [Google Play Services][google-play-services] Ads and Location libraries (version >= `16.0.0`).
 - [Android Support Library][android-support-library] library (version >= `28.0.0`).
-- [Android Beacon Library][android-beacon-library] An Android library to interact with beacons (version == `2.16.2`)
+- [Android Beacon Library][android-beacon-library] An Android library to interact with beacons (version == `2.16.3`)
 
 If you don't use Gradle to handle project building, or want to manually include the required libraries, add the following to your
 dependencies block in the app/build.gradle file.
@@ -71,7 +71,7 @@ dependencies block in the app/build.gradle file.
 dependencies {
     <...>
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.72'
-    implementation 'org.altbeacon:android-beacon-library:2.16.2'
+    implementation 'org.altbeacon:android-beacon-library:2.16.3'
     implementation 'com.google.android.gms:play-services-ads-identifier:16.0.0'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'com.android.support:appcompat-v7:28.0.0'
