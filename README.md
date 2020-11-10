@@ -124,8 +124,14 @@ is not granted the SDK can't enable proximity features involving GPS and
 beacons.
 
 **For applications running Android 10.0 or later**, the additional permission
-`ACCESS_BACKGROUND_LOCATION` must be requested to the user for the SDK to work
-properly.
+`ACCESS_BACKGROUND_LOCATION` must be declared in the application
+AndroidManifest.xml file and requested to the user for the SDK to work properly.
+
+Add the following to your AndroidManifest.xml
+
+```xml
+<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+```
 
 **For applications running Android 11.0 or later**, as per
 [official documentation](https://developer.android.com/preview/privacy), the
