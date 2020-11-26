@@ -7,8 +7,10 @@
     1. [Add the Maven repository](#user-content-add-the-maven-repository)
     2. [Add the library](#user-content-add-the-library)
     3. [Other dependencies](#user-content-other-dependencies)
-3. [Initialization](#user-content-initialization)
-    1. [Simple Initialization](#user-content-simple-initialization)
+3. [Usage](#user-content-usage)
+    1. [Initialization](#user-content-initialization)
+        1. [Manual Initialization](#user-content-manual-initialization)
+        2. [Automatic Initialization](#user-content-automatic-initialization)
     2. [Permissions and hardware requirements](#user-content-permissions-and-hardware-requirements)
     3. [Tracking user identifier](#user-content-tracking-user-identifier)
     4. [Customizing the notifications](#user-content-customizing-the-notifications)
@@ -48,7 +50,7 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```gradle
 dependencies {
     // ProximitySDK SDK
-    implementation 'com.jointag:proximitysdk:1.13.+'
+    implementation 'com.jointag:proximitysdk:1.14.+'
 }
 ```
 
@@ -79,12 +81,14 @@ dependencies {
 }
 ```
 
-## Initialization
+## Usage
 
-### Simple Initialization
+### Initialization
+
+#### Manual Initialization
 
 Add the following call to `ProximitySDK.init()` to the `onCreate()` method in
-your `Application` class.
+your `Application` subclass.
 
 ```java
 import com.jointag.proximity.ProximitySDK;
@@ -105,6 +109,43 @@ public class MyApplication extends Application {
         ProximitySDK.init(this, API_KEY, SECRET);
     }
 }
+```
+
+#### Automatic Initialization
+
+If you are unable to create or access an Android Application class, you can
+opt to automatically initialize the SDK at application launch by adding the
+following entries to the application's AndroidManifest.xml file, inside the
+`<application>` tag:
+
+```xml
+        <meta-data
+            android:name="com.jointag.proximity.API_KEY"
+            android:value="YOUR_API_KEY" />
+        <meta-data
+            android:name="com.jointag.proximity.API_SECRET"
+            android:value="YOUR_API_SECRET" />
+```
+
+You can also set the SDK **log level** and **log tag** using the following keys:
+
+```xml
+        <meta-data
+            android:name="com.jointag.proximity.LOG_LEVEL"
+            android:value="verbose" />
+            <!-- values : verbose|debug|info|warn|error|assert -->
+        <meta-data
+            android:name="com.jointag.proximity.LOG_TAG"
+            android:value="MY_TAG" />
+
+```
+
+You can enable the integration to a IAB-compliat CMP with the following entry:
+
+```xml
+        <meta-data
+            android:name="com.jointag.proximity.CMP_ENABLED"
+            android:value="true" />
 ```
 
 ### Permissions and hardware requirements
