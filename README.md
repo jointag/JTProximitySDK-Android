@@ -233,7 +233,7 @@ ProximitySDK.getInstance().getInstallationId();
 
 ### Customizing the notifications
 
-It is possibile to to customize the look (icon and title) of the advertising
+It is possibile to to customize the icon of the advertising
 notifications and the monitoring notification.
 
 In order to customize the icon, include in your project a drawable named
@@ -250,9 +250,6 @@ following densities:
 - xhdpi
 - xxhdpi
 - xxxhdpi
-
-In order to customize the title for all notifications, include in your project a
-string resource named `jointag_notification_title`.
 
 ---
 
