@@ -9,15 +9,19 @@
     3. [Other dependencies](#user-content-other-dependencies)
 3. [Usage](#user-content-usage)
     1. [Initialization](#user-content-initialization)
-        1. [Manual Initialization](#user-content-manual-initialization)
-        2. [Automatic Initialization](#user-content-automatic-initialization)
+        1. [Automatic Initialization](#user-content-automatic-initialization)
+        2. [Manual Initialization](#user-content-manual-initialization)
     2. [Permissions and hardware requirements](#user-content-permissions-and-hardware-requirements)
     3. [Tracking user identifier](#user-content-tracking-user-identifier)
-    4. [Customizing the notifications](#user-content-customizing-the-notifications)
-    5. [Receive custom events](#user-content-receive-custom-events)
-    6. [Programmatically Disable Advertising](#programmatically-disable-advertising)
-    7. [GDPR](#user-content-gdpr)
-    8. [Background Jobs ID](#user-content-background-jobs-id)
+    4. [Data Tags](#user-content-data-tags)
+    5. [Customizing the notifications](#user-content-customizing-the-notifications)
+    6. [Receive custom events](#user-content-receive-custom-events)
+    7. [Programmatically Disable Advertising](#user-content-programmatically-disable-advertising)
+    8. [GDPR Consent](#user-content-gdpr-consent)
+        1. [Enabling the Consent Flow support](#user-content-enabling-the-consent-flow-support)
+        2. [Using Consent Management Platform](#user-content-using-consent-management-platform)
+        3. [Implementing a Custom Consent Flow](#user-content-implementing-a-custom-consent-flow)
+    9. [Background Jobs ID](#user-content-background-jobs-id)
 
 This library allows you to integrate Jointag Proximity into your Android app.
 
@@ -50,7 +54,7 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```gradle
 dependencies {
     // ProximitySDK SDK
-    implementation 'com.jointag:proximitysdk:1.14.+'
+    implementation("com.jointag:proximitysdk:1.15.+")
 }
 ```
 
@@ -61,7 +65,7 @@ with the library through the previous gradle declaration.
 
 For the sake of clarity, the included dependencies comprise of the following:
 
-- [Kotlin][kotlin] Kotlin Std library (version >= 1.3.72)
+- [Kotlin][kotlin] Kotlin Std library (version >= 1.4.31)
 - [Google Play Services][google-play-services] Ads and Location libraries (version >= `16.0.0`).
 - [Android Support Library][android-support-library] library (version >= `28.0.0`).
 - [Android Beacon Library][android-beacon-library] An Android library to interact with beacons (version == `2.16.3`)
@@ -72,7 +76,7 @@ dependencies block in the app/build.gradle file.
 ```gradle
 dependencies {
     <...>
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.72'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.4.31'
     implementation 'org.altbeacon:android-beacon-library:2.16.3'
     implementation 'com.google.android.gms:play-services-ads-identifier:16.0.0'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
@@ -111,6 +115,12 @@ public class MyApplication extends Application {
 }
 ```
 
+---
+
+> ⚠️ **Attention**: the ProximitySDK.init() method **must be** called from within the
+> `Application.onCreate` method. Calling the init method from any other place
+> may result in an unpredictable SDK behaviour, or a crash in the worst case.
+
 #### Automatic Initialization
 
 If you are unable to create or access an Android Application class, you can
@@ -140,7 +150,8 @@ You can also set the SDK **log level** and **log tag** using the following keys:
 
 ```
 
-You can enable the integration to a IAB-compliat CMP with the following entry:
+You plans to implement a user consent flow manually or using a IAB-compliat CMP,
+you must specify the following entry:
 
 ```xml
         <meta-data
@@ -190,11 +201,7 @@ if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_
     if (ActivityCompat.shouldShowRequestPermissionRationale(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
         Toast.makeText(context, "Message explaining why granting the user location permission is usefull to the user", Toast.LENGTH_SHORT).show();
     } else {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ActivityCompat.requestPermissions(context, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-        } else {
-            ActivityCompat.requestPermissions(context, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-        }
+        ActivityCompat.requestPermissions(context, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
     }
 }
 ```
@@ -218,6 +225,8 @@ public void onRequestPermissionsResult(int requestCode, @NonNull String[] permis
 
 ### Tracking user identifier
 
+#### Advertising ID and Installation ID
+
 The SDK associates each tracked request with the *advertisingId*. If the
 *advertisingId* is not available due to a user permission denial, the device can
 be identified by the *installationId*. The *installationId* is a randomly
@@ -231,10 +240,93 @@ the SDK anywhere in your code with the following line:
 ProximitySDK.getInstance().getInstallationId();
 ```
 
+#### External User ID
+
+
+The `externalUserId` is an identifier you set to pair a unique user identifier
+of your choice with our` installationId`. Tipically this identifier must be set
+after a user has signed in to your application, and must be removed after the
+same user decides to sign out of you application.
+
+You can choose any string of 255 characters or less as externalUserId.
+
+Your **externalUserId** can be paired with multiple **installationId**, for example if
+the same user uses your app on multiple devices, or if the same user uninstalled
+and installed your app multiple times.
+
+On the other hand, the same **installationId** can be associated with one and
+only one **externalUserId**, usually the last one sent.
+
+For example, you can use the user record id of your database or your CRM, or the
+hash of an email address, or a third party platform identifier.
+
+Use the `setExternalUserId` method to add your unique external user ids:
+
+```java
+// Set
+ProximitySDK.getInstance().setExternalUserId("SOME ID");
+// Unset
+ProximitySDK.getInstance().setExternalUserId(null);
+```
+
+### Data Tags
+
+Tags are custom key-value pairs of `string`, `number`, `boolean` or `null` type,
+that can be sent to our server through the SDK methods and that allow you a more
+effective campaigns targeting, or to receive personalized analysis based on the
+characteristics of your users.
+
+Tags can be set or unset (with a `null` value) using the following methods:
+
+#### sendTag
+
+The `sendTag` method allow to set or unset a single tag at a time.
+
+The method can be called multiple times. When sending different keys, its
+effects are cumulative. If the same key is used, the last value overwrites the
+previous ones.
+
+```java
+ProximitySDK.getInstance().sendTag("key1", "value");
+// -> { "key1" : "value" }
+ProximitySDK.getInstance().sendTag("key2", 1);
+// -> { "key1" : "value", "key2" : 1 }
+ProximitySDK.getInstance().sendTag("key3", true);
+// -> { "key1" : "value", "key2" : 1, "key3" : true }
+ProximitySDK.getInstance().sendTag("key3", false);
+// -> { "key1" : "value", "key2" : 1, "key3" : false }
+ProximitySDK.getInstance().sendTag("key2", null);
+// -> { "key1" : "value", "key3" : false }
+```
+
+#### sendTags
+
+The `sendTags` method allow to set or unset a multiple tags at a time.
+
+The method can be called multiple times. When sending different keys, its
+effects are cumulative. If the same key is used, the last value overwrites the
+previous ones.
+
+```java
+Map<String,Object> tags = new HashMap<>();
+tags.put("key1", "value");
+tags.put("key2", 1);
+tags.put("key3", true);
+ProximitySDK.getInstance().sendTags(tags);
+// -> { "key1" : "value", "key2" : 1, "key3" : true }
+
+Map<String,Object> tags = new HashMap<>();
+tags.put("key2", null);
+tags.put("key3", false);
+ProximitySDK.getInstance().sendTags(tags);
+// -> { "key1" : "value", "key3" : false }
+
+```
+
 ### Customizing the notifications
 
-It is possibile to to customize the icon of the advertising
-notifications and the monitoring notification.
+It is possibile to to customize the icon and color of the advertising
+notifications.
 
 In order to customize the icon, include in your project a drawable named
 `ic_stat_jointag_default`.
@@ -251,19 +343,22 @@ following densities:
 - xxhdpi
 - xxxhdpi
 
+In order to customize the color for all notifications, include in your project a
+color resource named `jointag_notification_color`. The default icon color is
+`#2576BC`
+
 ---
 
-> **Note**: with some versions of the android build tool a duplicate resource
+> ⚠️ **Attention**: with some versions of the android build tool a duplicate resource
 > error may arise during the resource merging phase of the build. In this case
-> it is sufficient to include the new drawable resources using a version
-> qualifier. Eg:
+> it is sufficient to include the new drawable resources using a **version qualifier**.
+> Eg:
 >
-```drawable-hdpi-v7/ic_stat_jointag_default.png
-drawable-mdpi-v7/ic_stat_jointag_default.png
-drawable-xhdpi-v7/ic_stat_jointag_default.png
-drawable-xxhdpi-v7/ic_stat_jointag_default.png
-drawable-xxxhdpi-v7/ic_stat_jointag_default.png
-```
+> - `drawable-hdpi-v7/ic_stat_jointag_default.png`
+> - `drawable-mdpi-v7/ic_stat_jointag_default.png`
+> - `drawable-xhdpi-v7/ic_stat_jointag_default.png`
+> - `drawable-xxhdpi-v7/ic_stat_jointag_default.png`
+> - `drawable-xxxhdpi-v7/ic_stat_jointag_default.png`
 
 ### Receive custom events
 
@@ -295,18 +390,70 @@ ProximitySDK.getInstance().setAdvertisingEnabled(false);
 ProximitySDK.getInstance().setAdvertisingEnabled(true);
 ```
 
-### GDPR
+---
 
-As a publisher, you should integrate a Consent Management Platform (CMP) and
-request for vendor and purpose consents as outlined in IAB Europe’s Mobile
-In-App CMP API v2.0: Transparency & Consent Framework.
+> **Note**: disabling the advertising via `setAdvertisingEnabled(false)` has
+> always effect regardless of any other control method (ie: the user consent)
+
+### GDPR Consent
+
+As a publisher, you should implement a user consent flow either **manually** or
+using a **Consent Management Platform** (CMP) and request for vendor and purpose
+consents as outlined in IAB Europe’s Mobile In-App CMP API v2.0: Transparency
+& Consent Framework.
+
+#### Enabling the Consent Flow support
 
 To ensure that the SDK support the handling of user-consent preferences when a
 IAB-compatible CMP library is present, you must enable the feature through the
-`ProximitySDK.enabledCmp()` static method.
+`ProximitySDK.enabledCmp()` static method or the
+`com.jointag.proximity.CMP_ENABLED` meta-data in your AndroidManifest.xml file.
 
-**This method must be called before the library initialization to guarantee an
-error-free process**.
+> If you are following the [Manual
+> Initialization](#user-content-manual-initialization) procedure, this method
+> **must** be called before calling the library init method to guarantee an
+> error-free process.
+
+#### Using Consent Management Platform
+
+When configuring a third-party CMP to use with the Jointag Proximity SDK, the
+following requirements must be met:
+
+- In order to enable the delivery of advertising, a `custom publisher purpose`
+    **must be** configured in the CMP, and it **must be** the first custom
+    purpose.
+
+#### Implementing a Custom Consent Flow
+
+If you need to handle the user consent flow manually without the use of a
+IAB-compatible CMP library, or if the CMP you are using do not allow the
+customization of **custom publisher purpose**, it is possibile to do so by
+implementing an in-app consent screen and interacting with the SDK using the
+following methods:
+
+```java
+// Retrieve or update the manual user profiling consent
+ProximitySDK.getInstance().getManualConsent(ManualConsent.Profiling);
+ProximitySDK.getInstance().setManualConsent(ManualConsent.Profiling, true);
+
+// Retrieve or update the manual user monitoring consent
+ProximitySDK.getInstance().getManualConsent(ManualConsent.Monitoring);
+ProximitySDK.getInstance().setManualConsent(ManualConsent.Monitoring, true);
+
+// Retrieve or update the manual user advertising consent
+ProximitySDK.getInstance().getManualConsent(ManualConsent.Advertising);
+ProximitySDK.getInstance().setManualConsent(ManualConsent.Advertising, true);
+
+// Retrieve or update the manual user advanced tracking consent
+ProximitySDK.getInstance().getManualConsent(ManualConsent.AdvancedTracking);
+ProximitySDK.getInstance().setManualConsent(ManualConsent.AdvancedTracking, true);
+```
+
+---
+
+> ⚠️ **Attention**: When the **manual consent method** is used in the presence
+> of a **CMP library**, the choices made using the above methods take precedence
+> over the choices made by the user in the CMP library screen.
 
 ### Background Jobs ID
 
