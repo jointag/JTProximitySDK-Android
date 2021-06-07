@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ProximitySDK.getInstance().setExternalUserId("come-external-id");
+        ProximitySDK.getInstance().setExternalUserId("some-external-id");
         ProximitySDK.getInstance().sendTag("color", "blue");
     }
 
