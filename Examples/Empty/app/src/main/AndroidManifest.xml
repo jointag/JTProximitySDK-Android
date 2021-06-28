@@ -18,6 +18,9 @@
             android:name="com.jointag.proximity.API_SECRET"
             android:value="qxUe5vECy5DPeXmeFhPHOerVYdVDg34/StHkV3IPNdA927v4" />
         <meta-data
+            android:name="com.jointag.proximity.CMP_ENABLED"
+            android:value="true" />
+        <meta-data
             android:name="com.jointag.proximity.LOG_LEVEL"
             android:value="verbose" />
         <meta-data
