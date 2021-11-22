@@ -1,13 +1,20 @@
 apply plugin: 'com.android.application'
 repositories {
+    // JCenter, required for android-beacon-library:2.17.1
+    jcenter()
+
+    // Library repository
     maven { url "https://artifactory.jointag.com/artifactory/jointag" }
+
+    // Next14CMP repository
+    maven { url "https://artifactory.jointag.com/artifactory/next14" }
 }
 android {
     buildToolsVersion '29.0.2'
     compileSdkVersion 30
     defaultConfig {
         applicationId "com.jointag.proximity.examples.empty"
-        minSdkVersion 15
+        minSdkVersion 19
         targetSdkVersion 30
         versionCode 3
         versionName "1.0"
@@ -22,10 +29,35 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    flavorDimensions "service"
+    // Different product flavour based on which service platform you want to use
+    // for location and advertising
+    productFlavors {
+        // Google Play Services version
+        gms {
+            dimension = "service"
+        }
+        // Huawei Mobile Services version
+        huawei {
+            dimension = "service"
+            applicationIdSuffix = ".hms"
+        }
+    }
 }
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.3.0'
-    implementation 'com.jointag:proximitysdk:1.15.+'
+    implementation('androidx.appcompat:appcompat:1.3.0')
+    implementation('com.google.android.material:material:1.3.0')
+    // For Google Play Services
+    gmsImplementation("com.jointag:proximitysdk:1.16.0-beta.5")
+
+    // For Huawei Mobile Services
+    huaweiImplementation("com.huawei.hms:ads-identifier:3.4.41.302")
+    huaweiImplementation("com.huawei.hms:location:4.0.0.300")
+    huaweiImplementation('com.jointag:proximitysdk:1.16.0-beta.5') {
+        exclude(group: "com.google.android.gms")
+    }
+
+    implementation('com.next14.cmp:cmp-sdk:1.1.0')
 }
