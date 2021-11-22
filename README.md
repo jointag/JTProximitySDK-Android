@@ -44,6 +44,7 @@ the following lines to your build.gradle (Module: app) file:
 
 ```gradle
 repositories {
+    jcenter()
     maven { url "https://artifactory.jointag.com/artifactory/jointag" }
 }
 ```
@@ -79,8 +80,34 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:16.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3")
-    implementation("org.altbeacon:android-beacon-library:2.18")
+    implementation("org.altbeacon:android-beacon-library:2.17.1")
     <...>
+}
+```
+
+#### Regarding the JCenter repository
+
+As indicated in step "Add the Maven repository", it is necessary to include the
+now deprecated `jcenter` repository, to allow the inclusion of the correct
+version of the `android-beacon-library` library.
+
+First of all, despite being deprecated, the JCenter repository will be available
+as read-only repository indefinitely ([see here][jcenter-migration]).
+
+Since only the latest version of android-beacon-library (2.18) has been made
+available via MavenCentral, and since that version requires a minimum Android
+API level of 21 or later, we recommend installing the previous version (2.17.1)
+of the aforementioned library, available only on JCenter, if you want to mantain
+the current minimum API level (15).
+
+If your application already has a minimum API level of 21 or higher, then you
+can avoid adding the JCenter repository by explicitly including
+`android-beacon-library` version 2.18 as an application dependency.
+
+```gradle
+dependencies {
+    ...
+    implementation("org.altbeacon:android-beacon-library:2.18")
 }
 ```
 
@@ -583,3 +610,4 @@ ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
 [hms-core]: https://developer.huawei.com/consumer/en/doc/start/integrate-hms-core-0000001053032045
 [huawei-ads-kit]: https://developer.huawei.com/consumer/en/doc/development/HMSCore-Guides/publisher-service-introduction-0000001070671805
 [huawei-location-kit]: https://developer.huawei.com/consumer/en/doc/development/HMSCore-Guides/introduction-0000001050706106
+[jcenter-migration]: https://developer.android.com/studio/build/jcenter-migration
