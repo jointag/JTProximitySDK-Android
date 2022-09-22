@@ -2,27 +2,37 @@
 
 ## Table of Contents
 
-1. [Requirements](#user-content-requirements)
-2. [Installation](#user-content-installation)
-    1. [Add the Maven repository](#user-content-add-the-maven-repository)
-    2. [Add the library](#user-content-add-the-library)
-    3. [Other dependencies](#user-content-other-dependencies)
-    4. [Supporting Huawei Mobile Services](#user-content-supporting-huawei-mobile-services)
-3. [Usage](#user-content-usage)
-    1. [Initialization](#user-content-initialization)
-        1. [Manual Initialization](#user-content-manual-initialization)
-        2. [Automatic Initialization](#user-content-automatic-initialization)
-    2. [Permissions and hardware requirements](#user-content-permissions-and-hardware-requirements)
-    3. [Tracking user identifier](#user-content-tracking-user-identifier)
-    4. [Data Tags](#user-content-data-tags)
-    5. [Customizing the notifications](#user-content-customizing-the-notifications)
-    6. [Receive custom events](#user-content-receive-custom-events)
-    7. [Programmatically Disable Advertising](#user-content-programmatically-disable-advertising)
-    8. [GDPR Consent](#user-content-gdpr-consent)
-        1. [Enabling the Consent Flow support](#user-content-enabling-the-consent-flow-support)
-        2. [Using Consent Management Platform](#user-content-using-consent-management-platform)
-        3. [Implementing a Custom Consent Flow](#user-content-implementing-a-custom-consent-flow)
-    9. [Background Jobs ID](#user-content-background-jobs-id)
+* [Requirements](#requirements)
+* [Installation](#installation)
+    + [Add the Maven repository](#add-the-maven-repository)
+    + [Add the library](#add-the-library)
+    + [Other dependencies](#other-dependencies)
+    + [Regarding the JCenter repository](#regarding-the-jcenter-repository)
+    + [Supporting Huawei Mobile Services](#supporting-huawei-mobile-services)
+    + [For distribution on Huawei AppGallery only](#for-distribution-on-huawei-appgallery-only)
+* [Usage](#usage)
+    + [Initialization](#initialization)
+    + [Automatic Initialization](#automatic-initialization)
+    + [Manual Initialization](#manual-initialization)
+        * [Create an Application Class](#create-an-application-class)
+        * [Add the Required Code](#add-the-required-code)
+    + [Permissions and hardware requirements](#permissions-and-hardware-requirements)
+        * [For application running on Android 6.0 or later](#for-application-running-on-android-60-or-later)
+        * [For applications running Android 10.0 or later](#for-applications-running-android-100-or-later)
+        * [For applications running Android 11.0 or later](#for-applications-running-android-110-or-later)
+        * [For applications running on Android 13.0 or later](#for-applications-running-on-android-130-or-later)
+    + [Tracking user identifier](#tracking-user-identifier)
+    + [Advertising ID and Installation ID](#advertising-id-and-installation-id)
+    + [External User ID](#external-user-id)
+    + [Data Tags](#data-tags)
+    + [Customizing the notifications](#customizing-the-notifications)
+    + [Receive custom events](#receive-custom-events)
+    + [Programmatically Disable Advertising](#programmatically-disable-advertising)
+    + [GDPR Consent](#gdpr-consent)
+    + [Enabling the Consent Flow support](#enabling-the-consent-flow-support)
+    + [Using Consent Management Platform](#using-consent-management-platform)
+    + [Implementing a Custom Consent Flow](#implementing-a-custom-consent-flow)
+    + [Background Jobs ID](#background-jobs-id)
 
 This library allows you to integrate Jointag Proximity into your Android app.
 
@@ -42,10 +52,26 @@ Minimum API level: `15` (Android 4.0.3)
 To download the SDK package you can use our Maven repository. To include it, add
 the following lines to your build.gradle (Module: app) file:
 
-```gradle
+```groovy
 repositories {
     jcenter()
     maven { url "https://artifactory.jointag.com/artifactory/jointag" }
+}
+```
+
+### Enable Java 8 language features and APIs
+
+```groovy
+android {
+    ...
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    // For Kotlin projects
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 ```
 
@@ -53,14 +79,14 @@ repositories {
 
 Now add the ProximitySDK dependency (use latest SDK version).
 
-```gradle
+```groovy
 dependencies {
     // ProximitySDK SDK
-    implementation("com.jointag:proximitysdk:1.16.+")
+    implementation("com.jointag:proximitysdk:1.18.+")
 }
 ```
 
-### Other dependencies
+### Other dependencies (Optional)
 
 Additional dependencies **should automatically be downloaded** and included
 along with the library through the previous gradle declaration.
@@ -72,42 +98,15 @@ the app/build.gradle file.
 ```gradle
 dependencies {
     <...>
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("androidx.appcompat:appcompat:1.2.0")
-    implementation("androidx.preference:preference:1.1.1")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.4.32")
-    implementation("com.google.android.gms:play-services-ads-identifier:16.0.0")
-    implementation("com.google.android.gms:play-services-location:16.0.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.3")
-    implementation("org.altbeacon:android-beacon-library:2.17.1")
+    implementation("androidx.preference:preference:1.2.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.21")
+    implementation("com.google.android.gms:play-services-ads-identifier:17.0.0")
+    implementation("com.google.android.gms:play-services-location:17.0.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("org.altbeacon:android-beacon-library:2.19")
     <...>
-}
-```
-
-#### Regarding the JCenter repository
-
-As indicated in step "Add the Maven repository", it is necessary to include the
-now deprecated `jcenter` repository, to allow the inclusion of the correct
-version of the `android-beacon-library` library.
-
-First of all, despite being deprecated, the JCenter repository will be available
-as read-only repository indefinitely ([see here][jcenter-migration]).
-
-Since only the latest version of android-beacon-library (2.18) has been made
-available via MavenCentral, and since that version requires a minimum Android
-API level of 21 or later, we recommend installing the previous version (2.17.1)
-of the aforementioned library, available only on JCenter, if you want to mantain
-the current minimum API level (15).
-
-If your application already has a minimum API level of 21 or higher, then you
-can avoid adding the JCenter repository by explicitly including
-`android-beacon-library` version 2.18 as an application dependency.
-
-```gradle
-dependencies {
-    ...
-    implementation("org.altbeacon:android-beacon-library:2.18")
 }
 ```
 
@@ -128,8 +127,8 @@ dependencies {
 }
 ```
 
-**Note**: Huawei libraries may have a higher minimum API level requirement than
-the ProximitySDK library.
+**Note**: Huawei libraries may have a **higher minimum API level** requirement
+than the ProximitySDK library.
 
 #### For distribution on Huawei AppGallery only
 
@@ -151,7 +150,52 @@ dependencies {
 
 ### Initialization
 
+#### Automatic Initialization
+
+You can opt to automatically initialize the SDK at application launch by
+adding the following entries to the application's AndroidManifest.xml file,
+inside the `<application>` tag:
+
+```xml
+        <meta-data
+            android:name="com.jointag.proximity.API_KEY"
+            android:value="YOUR_API_KEY" />
+        <meta-data
+            android:name="com.jointag.proximity.API_SECRET"
+            android:value="YOUR_API_SECRET" />
+```
+
+> :warning: **Note** Some features, such as the ability to subscribe to custom
+> events, requires their relative initialization code to be execute in the
+> `Application` onCreate method, so they are not available when using Automatic
+> Initialization
+
+You can also set the SDK **log level** and **log tag** using the following keys:
+
+```xml
+        <meta-data
+            android:name="com.jointag.proximity.LOG_LEVEL"
+            android:value="verbose" />
+            <!-- values : verbose|debug|info|warn|error|assert -->
+        <meta-data
+            android:name="com.jointag.proximity.LOG_TAG"
+            android:value="MY_TAG" />
+
+```
+
+You plans to implement a user consent flow manually or using a IAB-compliat CMP,
+you must specify the following entry:
+
+```xml
+        <meta-data
+            android:name="com.jointag.proximity.CMP_ENABLED"
+            android:value="true" />
+```
+
 #### Manual Initialization
+
+If you want to manually initialize the SDK, you have to include the
+initialization code in your app **Application class** onCreate method.
 
 If you don't have an `Application` class read the following section on how to
 **Create an Application Class**, otherwise skip to the **Add the Required Code**
@@ -222,55 +266,12 @@ public class MyApplication extends Application {
 > any other place may result in an unpredictable SDK behaviour, or a crash in
 > the worst case.
 
-#### Automatic Initialization
-
-If for some reason you are unable to create (or access) an Android `Application`
-class, you can opt to automatically initialize the SDK at application launch by
-adding the following entries to the application's AndroidManifest.xml file,
-inside the `<application>` tag:
-
-```xml
-        <meta-data
-            android:name="com.jointag.proximity.API_KEY"
-            android:value="YOUR_API_KEY" />
-        <meta-data
-            android:name="com.jointag.proximity.API_SECRET"
-            android:value="YOUR_API_SECRET" />
-```
-
-> :warning: **Note** Some features, such as the ability to subscribe to custom
-> events, requires their relative initialization code to be execute in the
-> `Application` onCreate method, so they are not available when using Automatic
-> Initialization
-
-You can also set the SDK **log level** and **log tag** using the following keys:
-
-```xml
-        <meta-data
-            android:name="com.jointag.proximity.LOG_LEVEL"
-            android:value="verbose" />
-            <!-- values : verbose|debug|info|warn|error|assert -->
-        <meta-data
-            android:name="com.jointag.proximity.LOG_TAG"
-            android:value="MY_TAG" />
-
-```
-
-You plans to implement a user consent flow manually or using a IAB-compliat CMP,
-you must specify the following entry:
-
-```xml
-        <meta-data
-            android:name="com.jointag.proximity.CMP_ENABLED"
-            android:value="true" />
-```
-
 ### Permissions and hardware requirements
 
-This SDK uses user-location permissions to function. All required permissions
-are declared in the SDK AndroidManifest file, and automatically added to your
-application AndroidManifest when the library is included as a Gradle dependency
-(see [Add the library](#add-the-library)).
+This SDK uses user-location and notifications permissions to function.
+All required permissions are declared in the SDK AndroidManifest file, and
+automatically added to your application AndroidManifest when the library is
+included as a Gradle dependency (see [Add the library](#add-the-library)).
 
 ##### For application running on Android 6.0 or later
 
@@ -333,6 +334,13 @@ public void onRequestPermissionsResult(int requestCode, @NonNull String[] permis
     }
 }
 ```
+
+##### For applications running on Android 13.0 or later
+
+The request for [`POST_NOTIFICATIONS`][post-notifications] permission has to be
+implemented by the application that includes the SDK. The request can be
+implemented in any point in the application, but it's recommended to ask the
+user for notification permission as soon as possible..
 
 ### Tracking user identifier
 
@@ -533,11 +541,13 @@ IAB-compatible CMP library is present, you must enable the feature through the
 #### Using Consent Management Platform
 
 When configuring a third-party CMP to use with the Jointag Proximity SDK, the
-following requirements must be met:
+following requirements must be met in order to enable the delivery of
+advertising:
 
-- In order to enable the delivery of advertising, a `custom publisher purpose`
-    **must be** configured in the CMP, and it **must be** the first custom
-    purpose.
+- Your CMP **must be** fully compliant with v2.0 of the `IAB Tansparency &
+  Consent Framework`. IAB TCF v1.1 is no longer supported.
+- A `Custom Publisher Purpose` **must be** configured in the CMP, and it **must
+    be** the first custom purpose.
 
 #### Implementing a Custom Consent Flow
 
@@ -602,8 +612,9 @@ ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
 [androidx-support-library]: https://developer.android.com/topic/libraries/support-library/index.html
 [android-beacon-library]: https://github.com/AltBeacon/android-beacon-library
 [requesting-permissions]: https://developer.android.com/training/permissions/requesting.html
-[access-fine-location]: https://developer.android.com/reference/android/Manifest.permission#access-fine-location
-[access-coarse-location]: https://developer.android.com/reference/android/Manifest.permission#access-coarse-location
+[access-fine-location]: https://developer.android.com/reference/android/Manifest.permission#ACCESS_FINE_LOCATION
+[access-coarse-location]: https://developer.android.com/reference/android/Manifest.permission#ACCESS_COARSE_LOCATION
+[post-notifications]: https://developer.android.com/reference/android/Manifest.permission#POST_NOTIFICATIONS
 [access-background-location]: https://developer.android.com/reference/android/Manifest.permission#ACCESS_BACKGROUND_LOCATION
 [android-asset-studio]: https://romannurik.github.io/AndroidAssetStudio/icons-notification.html
 [job-services]: https://developer.android.com/reference/android/app/job/jobscheduler
