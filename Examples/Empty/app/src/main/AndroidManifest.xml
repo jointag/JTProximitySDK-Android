@@ -25,9 +25,11 @@
             android:value="verbose" />
         <meta-data
             android:name="com.jointag.proximity.LOG_TAG"
-            android:value="Sample Application" />
+            android:value="SampleApplication" />
 
-        <activity android:name="com.jointag.proximity.examples.empty.ui.MainActivity">
+        <activity
+            android:name="com.jointag.proximity.examples.empty.ui.MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

@@ -1,21 +1,17 @@
 apply plugin: 'com.android.application'
 repositories {
-    // JCenter, required for android-beacon-library:2.17.1
-    jcenter()
-
     // Library repository
     maven { url "https://artifactory.jointag.com/artifactory/jointag" }
-
     // Next14CMP repository
     maven { url "https://artifactory.jointag.com/artifactory/next14" }
 }
 android {
     buildToolsVersion '29.0.2'
-    compileSdkVersion 30
+    compileSdkVersion 33
     defaultConfig {
         applicationId "com.jointag.proximity.examples.empty"
-        minSdkVersion 19
-        targetSdkVersion 30
+        minSdkVersion 21
+        targetSdkVersion 33
         versionCode 3
         versionName "1.0"
     }
@@ -47,17 +43,18 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation('androidx.appcompat:appcompat:1.3.0')
-    implementation('com.google.android.material:material:1.3.0')
+    implementation('androidx.appcompat:appcompat:1.5.1')
+    implementation('com.google.android.material:material:1.6.1')
+    implementation('androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1')
     // For Google Play Services
-    gmsImplementation("com.jointag:proximitysdk:1.16.0-beta.5")
+    gmsImplementation("com.jointag:proximitysdk:1.18.+")
 
     // For Huawei Mobile Services
     huaweiImplementation("com.huawei.hms:ads-identifier:3.4.41.302")
     huaweiImplementation("com.huawei.hms:location:4.0.0.300")
-    huaweiImplementation('com.jointag:proximitysdk:1.16.0-beta.5') {
+    huaweiImplementation('com.jointag:proximitysdk:1.18.+') {
         exclude(group: "com.google.android.gms")
     }
 
-    implementation('com.next14.cmp:cmp-sdk:1.1.0')
+    implementation('com.next14.cmp:cmp-sdk:2.0.0')
 }
