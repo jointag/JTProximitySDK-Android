@@ -6,12 +6,12 @@ repositories {
     maven { url "https://artifactory.jointag.com/artifactory/next14" }
 }
 android {
-    buildToolsVersion '29.0.2'
-    compileSdkVersion 33
+    namespace = "com.jointag.proximity.examples.empty"
+    compileSdk 34
     defaultConfig {
         applicationId "com.jointag.proximity.examples.empty"
-        minSdkVersion 21
-        targetSdkVersion 33
+        minSdk 21
+        targetSdk 34
         versionCode 3
         versionName "1.0"
     }
@@ -25,7 +25,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    flavorDimensions "service"
+    flavorDimensions = ["service"]
     // Different product flavour based on which service platform you want to use
     // for location and advertising
     productFlavors {
@@ -47,12 +47,12 @@ dependencies {
     implementation('com.google.android.material:material:1.6.1')
     implementation('androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1')
     // For Google Play Services
-    gmsImplementation("com.jointag:proximitysdk:1.18.+")
+    gmsImplementation("com.jointag:proximitysdk:1.19.+")
 
     // For Huawei Mobile Services
     huaweiImplementation("com.huawei.hms:ads-identifier:3.4.41.302")
     huaweiImplementation("com.huawei.hms:location:4.0.0.300")
-    huaweiImplementation('com.jointag:proximitysdk:1.18.+') {
+    huaweiImplementation('com.jointag:proximitysdk:1.19.+') {
         exclude(group: "com.google.android.gms")
     }
 

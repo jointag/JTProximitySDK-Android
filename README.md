@@ -82,7 +82,7 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```groovy
 dependencies {
     // ProximitySDK SDK
-    implementation("com.jointag:proximitysdk:1.18.+")
+    implementation("com.jointag:proximitysdk:1.19.+")
 }
 ```
 
@@ -100,12 +100,12 @@ dependencies {
     <...>
     implementation("androidx.appcompat:appcompat:1.2.0")
     implementation("androidx.preference:preference:1.2.0")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.21")
-    implementation("com.google.android.gms:play-services-ads-identifier:17.0.0")
-    implementation("com.google.android.gms:play-services-location:17.0.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.7.21")
+    implementation("com.google.android.gms:play-services-ads-identifier:18.0.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
-    implementation("org.altbeacon:android-beacon-library:2.19")
+    implementation("org.altbeacon:android-beacon-library:2.19.5")
     <...>
 }
 ```
