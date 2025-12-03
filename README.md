@@ -1,51 +1,46 @@
-# Proximity SDK for Android
+# ProximitySDK for Android
+
+ProximitySDK for Android is a comprehensive library that enables your app to
+deliver location-based advertising, analytics, and proximity-driven experiences
+with minimal effort. The SDK provides:
+
+- Geofencing and place detection
+- Bluetooth beacon and WiFi monitoring
+- User behavior tracking and analytics
+- GDPR-compliant consent management
+- Custom event and notification handling
+- Seamless integration with both Google Play Services and Huawei Mobile Services
 
 ## Table of Contents
 
-* [Requirements](#requirements)
-* [Installation](#installation)
+* [📋 Requirements](#-requirements)
+* [🧰 Installation](#-installation)
     + [Add the Maven repository](#add-the-maven-repository)
+    + [Enable Java 8 language features and APIs](#enable-java-8-language-features-and-apis)
     + [Add the library](#add-the-library)
-    + [Other dependencies](#other-dependencies)
-    + [Regarding the JCenter repository](#regarding-the-jcenter-repository)
     + [Supporting Huawei Mobile Services](#supporting-huawei-mobile-services)
-    + [For distribution on Huawei AppGallery only](#for-distribution-on-huawei-appgallery-only)
-* [Usage](#usage)
-    + [Initialization](#initialization)
-    + [Automatic Initialization](#automatic-initialization)
-    + [Manual Initialization](#manual-initialization)
-        * [Create an Application Class](#create-an-application-class)
-        * [Add the Required Code](#add-the-required-code)
-    + [Permissions and hardware requirements](#permissions-and-hardware-requirements)
-        * [For application running on Android 6.0 or later](#for-application-running-on-android-60-or-later)
-        * [For applications running Android 10.0 or later](#for-applications-running-android-100-or-later)
-        * [For applications running Android 11.0 or later](#for-applications-running-android-110-or-later)
-        * [For applications running on Android 13.0 or later](#for-applications-running-on-android-130-or-later)
-    + [Tracking user identifier](#tracking-user-identifier)
-    + [Advertising ID and Installation ID](#advertising-id-and-installation-id)
-    + [External User ID](#external-user-id)
-    + [Data Tags](#data-tags)
-    + [Customizing the notifications](#customizing-the-notifications)
-    + [Receive custom events](#receive-custom-events)
-    + [Programmatically Disable Advertising](#programmatically-disable-advertising)
-    + [GDPR Consent](#gdpr-consent)
-    + [Enabling the Consent Flow support](#enabling-the-consent-flow-support)
-    + [Using Consent Management Platform](#using-consent-management-platform)
-    + [Implementing a Custom Consent Flow](#implementing-a-custom-consent-flow)
-    + [Background Jobs ID](#background-jobs-id)
+* [🚀 Usage](#-usage)
+    + [🔧 Initialization](#-initialization)
+    + [🔐 Permissions and hardware requirements](#-permissions-and-hardware-requirements)
+    + [👤 Tracking user identifier](#-tracking-user-identifier)
+    + [🏷 Data Tags](#-data-tags)
+    + [🎨 Customizing the notifications](#-customizing-the-notifications)
+    + [📬 Receive custom events](#-receive-custom-events)
+    + [🚫 Programmatically Disable Advertising](#-programmatically-disable-advertising)
+    + [🛡 GDPR Consent](#-gdpr-consent)
+    + [⏰ Background Jobs ID](#-background-jobs-id)
 
-This library allows you to integrate Jointag Proximity into your Android app.
+---
 
-## Requirements
+## 📋 Requirements
 
-Minimum API level: `15` (Android 4.0.3)
+- Minimum API level: `21` (Android 5.0)
+- Kotlin [2.2.0](https://kotlinlang.org/) or higher, if the application is written in
+  Kotlin
 
-> **Note**: to use functionalities that rely on BLE, the minimum API level is
-> `18` (Android 4.3). If the device API level is between `16` and `17` the SDK
-> won't be able to access BLE and therefore it will be not possible to obtain
-> data from BLE devices.
+---
 
-## Installation
+## 🧰 Installation
 
 ### Add the Maven repository
 
@@ -54,7 +49,8 @@ the following lines to your build.gradle (Module: app) file:
 
 ```groovy
 repositories {
-    jcenter()
+    google()
+    mavenCentral()
     maven { url "https://artifactory.jointag.com/artifactory/jointag" }
 }
 ```
@@ -82,31 +78,7 @@ Now add the ProximitySDK dependency (use latest SDK version).
 ```groovy
 dependencies {
     // ProximitySDK SDK
-    implementation("com.jointag:proximitysdk:1.19.+")
-}
-```
-
-### Other dependencies (Optional)
-
-Additional dependencies **should automatically be downloaded** and included
-along with the library through the previous gradle declaration.
-
-_If you don't use Gradle to handle project building_, or want to manually
-include the required libraries, add the following to your dependencies block in
-the app/build.gradle file.
-
-```gradle
-dependencies {
-    <...>
-    implementation("androidx.appcompat:appcompat:1.2.0")
-    implementation("androidx.preference:preference:1.2.0")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.7.21")
-    implementation("com.google.android.gms:play-services-ads-identifier:18.0.0")
-    implementation("com.google.android.gms:play-services-location:21.0.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
-    implementation("org.altbeacon:android-beacon-library:2.19.5")
-    <...>
+    implementation("com.jointag:proximitysdk:1.20.0")
 }
 ```
 
@@ -118,37 +90,42 @@ application, then adding the dependencies for [Huawei Ads Kit][huawei-ads-kit]
 and [Huawei Location Kit][huawei-location-kit] to your app/build.gradle
 file:
 
-```gradle
+```groovy
 dependencies {
-    <...>
+    <...app dependencies...>
+    implementation("com.jointag:proximitysdk:1.20.0")
+    // Huawei Mobile Services dependencies
     implementation("com.huawei.hms:ads-identifier:3.4.41.302")
     implementation("com.huawei.hms:location:4.0.0.300")
-    <...>
 }
 ```
 
 **Note**: Huawei libraries may have a **higher minimum API level** requirement
-than the ProximitySDK library.
+than the ProximitySDK library. Make sure to check the official Huawei
+documentation for the minimum API level required by the versions of the
+libraries you are including.
 
 #### For distribution on Huawei AppGallery only
 
 If your app will only be available on Huawei AppGallery and you want to avoid
 including any Google Play Services dependencies that ProximitySDK includes, you
-can specify the group "com.google.android.gms" from the librry transitive
+can specify the group "com.google.android.gms" from the library transitive
 dependencies in your app/build.gradle file:
 
-```gradle
+```groovy
 dependencies {
     // ProximitySDK SDK
-    implementation("com.jointag:proximitysdk:1.16.+") {
+    implementation("com.jointag:proximitysdk:1.20.0") {
         exclude group: "com.google.android.gms"
     }
 }
 ```
 
-## Usage
+---
 
-### Initialization
+## 🚀 Usage
+
+### 🔧 Initialization
 
 #### Automatic Initialization
 
@@ -165,11 +142,6 @@ inside the `<application>` tag:
             android:value="YOUR_API_SECRET" />
 ```
 
-> :warning: **Note** Some features, such as the ability to subscribe to custom
-> events, requires their relative initialization code to be execute in the
-> `Application` onCreate method, so they are not available when using Automatic
-> Initialization
-
 You can also set the SDK **log level** and **log tag** using the following keys:
 
 ```xml
@@ -183,7 +155,7 @@ You can also set the SDK **log level** and **log tag** using the following keys:
 
 ```
 
-You plans to implement a user consent flow manually or using a IAB-compliat CMP,
+If you plan to implement a user consent flow manually or using a IAB-compliant CMP,
 you must specify the following entry:
 
 ```xml
@@ -192,12 +164,16 @@ you must specify the following entry:
             android:value="true" />
 ```
 
+> :warning: **Note** Some features, such as the ability to subscribe to custom
+> events, still requires their relative initialization code to be execute in the
+> `Application` onCreate method.
+
 #### Manual Initialization
 
 If you want to manually initialize the SDK, you have to include the
 initialization code in your app **Application class** onCreate method.
 
-If you don't have an `Application` class read the following section on how to
+If you don't have an `Application` class, read the following section on how to
 **Create an Application Class**, otherwise skip to the **Add the Required Code**
 *section.
 
@@ -237,7 +213,6 @@ Add `android:name=".MyApplication"` to your `<application>` tag
 Add the following call to `ProximitySDK.init()` in the `onCreate()` method of
 your `Application` class.
 
-
 ```java
 import com.jointag.proximity.ProximitySDK;
 import com.jointag.proximity.util.Logger;
@@ -266,7 +241,7 @@ public class MyApplication extends Application {
 > any other place may result in an unpredictable SDK behaviour, or a crash in
 > the worst case.
 
-### Permissions and hardware requirements
+### 🔐 Permissions and hardware requirements
 
 This SDK uses user-location and notifications permissions to function.
 All required permissions are declared in the SDK AndroidManifest file, and
@@ -309,17 +284,23 @@ documentation.
 An example of implementation is the following:
 
 ```java
-if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-    if (ActivityCompat.shouldShowRequestPermissionRationale(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
-        Toast.makeText(context, "Message explaining why granting the user location permission is usefull to the user", Toast.LENGTH_SHORT).show();
-    } else {
-        ActivityCompat.requestPermissions(context, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+public class MainActivity extends AppCompatActivity {
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
+
+    private void requestLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                Toast.makeText(this, "Message explaining why granting the user location permission is useful to the user", Toast.LENGTH_SHORT).show();
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+            }
+        }
     }
 }
 ```
 
 After having requested the permissions to the user and the user has granted the
-required permissions (tipically in the `onRequestPermissionsResult` callback of
+required permissions (typically in the `onRequestPermissionsResult` callback of
 the Activity), the monitoring process must be resumed by calling the
 `ProximitySDK#checkPendingPermissions` method.
 
@@ -342,7 +323,7 @@ implemented by the application that includes the SDK. The request can be
 implemented in any point in the application, but it's recommended to ask the
 user for notification permission as soon as possible..
 
-### Tracking user identifier
+### 👤 Tracking user identifier
 
 #### Advertising ID and Installation ID
 
@@ -362,7 +343,7 @@ ProximitySDK.getInstance().getInstallationId();
 #### External User ID
 
 The `externalUserId` is an identifier you set to pair a unique user identifier
-of your choice with our` installationId`. Tipically this identifier must be set
+of your choice with our` installationId`. Typically this identifier must be set
 after a user has signed in to your application, and must be removed after the
 same user decides to sign out of you application.
 
@@ -387,7 +368,7 @@ ProximitySDK.getInstance().setExternalUserId("SOME ID");
 ProximitySDK.getInstance().setExternalUserId(null);
 ```
 
-### Data Tags
+### 🏷 Data Tags
 
 Tags are custom key-value pairs of `string`, `number`, `boolean` or `null` type,
 that can be sent to our server through the SDK methods and that allow you a more
@@ -441,9 +422,9 @@ ProximitySDK.getInstance().sendTags(tags);
 
 ```
 
-### Customizing the notifications
+### 🎨 Customizing the notifications
 
-It is possibile to to customize the icon and color of the advertising
+It is possibile to customize the icon and color of the advertising
 notifications.
 
 In order to customize the icon, include in your project a drawable named
@@ -480,7 +461,7 @@ color resource named `jointag_notification_color`. The default icon color is
 > - `drawable-xxhdpi-v7/ic_stat_jointag_default.png`
 > - `drawable-xxxhdpi-v7/ic_stat_jointag_default.png`
 
-### Receive custom events
+### 📬 Receive custom events
 
 You can receive custom advertising events (if configured in the backend) to
 integrate application-specific features by registering a `CustomActionListener`
@@ -497,7 +478,7 @@ When the application user interacts with a custom-action notification, the
 > `onCreate()` method of your Application class, otherwise you will likely loose
 > the custom event.
 
-### Programmatically Disable Advertising
+### 🚫 Programmatically Disable Advertising
 
 It is possible to programmatically disable/enable the advertising delivery by
 setting the SDK's `advertisingEnabled` property to `false`. It is useful for
@@ -519,7 +500,7 @@ ProximitySDK.getInstance().setAdvertisingEnabled(true);
 > `setAdvertisingEnabled(false)` has always effect regardless of any other
 > control method (ie: the user consent)
 
-### GDPR Consent
+### 🛡 GDPR Consent
 
 As a publisher, you should implement a user consent flow either **manually** or
 using a **Consent Management Platform** (CMP) and request for vendor and purpose
@@ -581,7 +562,7 @@ ProximitySDK.getInstance().setManualConsent(ManualConsent.AdvancedTracking, true
 > of a **CMP library**, the choices made using the above methods take precedence
 > over the choices made by the user in the CMP library screen.
 
-### Background Jobs ID
+### ⏰ Background Jobs ID
 
 On Android 5.0 or later, the SDK use [Job Services][job-services] to perform
 scheduled tasks. Since the JobScheduler need to identify each jobs with a unique

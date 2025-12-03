@@ -1,37 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-
     <!-- Allow querying for HMS Core APK -->
     <queries>
         <intent>
             <action android:name="com.huawei.hms.core.aidlservice" />
         </intent>
     </queries>
-
-    <application
-        android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:theme="@style/AppTheme">
-        <meta-data
-            android:name="com.jointag.proximity.API_KEY"
-            android:value="598322107a5b646fd1785fd9" />
-        <meta-data
-            android:name="com.jointag.proximity.API_SECRET"
-            android:value="qxUe5vECy5DPeXmeFhPHOerVYdVDg34/StHkV3IPNdA927v4" />
-        <meta-data
-            android:name="com.jointag.proximity.LOG_LEVEL"
-            android:value="verbose" />
-
-        <activity android:name="com.jointag.proximity.examples.empty.ui.MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
 </manifest>

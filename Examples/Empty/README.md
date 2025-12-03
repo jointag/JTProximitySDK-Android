@@ -1,1 +1,0 @@
-# Jointag ProximitySDK Sample Application
