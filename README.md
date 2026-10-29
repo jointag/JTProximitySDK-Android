@@ -22,6 +22,7 @@ with minimal effort. The SDK provides:
 * [🚀 Usage](#-usage)
     + [🔧 Initialization](#-initialization)
     + [🔐 Permissions and hardware requirements](#-permissions-and-hardware-requirements)
+    + [🔒 Network security](#-network-security)
     + [👤 Tracking user identifier](#-tracking-user-identifier)
     + [🏷 Data Tags](#-data-tags)
     + [🎨 Customizing the notifications](#-customizing-the-notifications)
@@ -29,6 +30,11 @@ with minimal effort. The SDK provides:
     + [🚫 Programmatically Disable Advertising](#-programmatically-disable-advertising)
     + [🛡 GDPR Consent](#-gdpr-consent)
     + [⏰ Background Jobs ID](#-background-jobs-id)
+* [🧪 Testing with a simulated location](#-testing-with-a-simulated-location)
+    + [Injecting a position the SDK will read](#injecting-a-position-the-sdk-will-read)
+    + [Re-entering a geofence](#re-entering-a-geofence)
+    + [When the campaign stops serving](#when-the-campaign-stops-serving)
+    + [Reading the outcome](#reading-the-outcome)
 
 ---
 
@@ -120,6 +126,24 @@ dependencies {
     }
 }
 ```
+
+If you do this **and build your release with R8 or ProGuard** — which is the
+default for release builds — add the following rule to your application's
+`proguard-rules.pro`:
+
+```proguard
+-dontwarn com.google.android.gms.**
+```
+
+The SDK references Play Services classes so that they are used when available,
+and guards every access against `NoClassDefFoundError`. Once you exclude the
+dependency those classes are no longer on the shrinker's classpath, and without
+this rule R8 fails the build with `Missing class com.google.android.gms.…`.
+
+The rule is not shipped in the SDK's consumer rules on purpose: Play Services
+are a regular dependency of the library, present for everyone who does not
+deliberately exclude them, and suppressing those warnings for every integrator
+would also hide warnings about their own Play Services usage.
 
 ---
 
@@ -316,12 +340,144 @@ public void onRequestPermissionsResult(int requestCode, @NonNull String[] permis
 }
 ```
 
+##### For applications running on Android 12.0 or later
+
+Beacon detection requires the [`BLUETOOTH_SCAN`][bluetooth-scan] permission. As with
+`ACCESS_BACKGROUND_LOCATION`, the SDK does **not** declare it: applications that do not use beacons
+would inherit a sensitive permission they neither need nor can justify in Play review. Applications
+that do use beacons declare it themselves.
+
+Add the following to your AndroidManifest.xml:
+
+```xml
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+```
+
+Declare it **without** `android:usesPermissionFlags="neverForLocation"`. The SDK derives the user's
+physical position from beacon proximity, so that flag would misdescribe what the permission is used
+for. One consequence worth knowing: on Android 12 and later the system delivers scan results only
+when location permission has been granted as well, so `BLUETOOTH_SCAN` alone is not enough.
+
+The permission must then be **requested at runtime**, exactly as location permission is. Until it is
+granted the SDK cannot detect beacons, and `ProximitySDK#getBluetoothState` reports `DENIED`.
+
+`BLUETOOTH_CONNECT` is **not** required: the SDK only scans for advertising packets and never
+connects or pairs with a device.
+
+The legacy `BLUETOOTH` and `BLUETOOTH_ADMIN` permissions are declared by the SDK with
+`android:maxSdkVersion="30"`, so they no longer apply on Android 12 and later.
+
 ##### For applications running on Android 13.0 or later
 
 The request for [`POST_NOTIFICATIONS`][post-notifications] permission has to be
 implemented by the application that includes the SDK. The request can be
 implemented in any point in the application, but it's recommended to ask the
 user for notification permission as soon as possible..
+
+
+#### Permission compatibility matrix
+
+Permissions the SDK declares on its own, and those the application is expected to declare or request.
+
+| Permission | API levels | Declared by | Runtime request |
+| --- | --- | --- | --- |
+| `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `CHANGE_WIFI_STATE` | 21+ | SDK | not required |
+| `RECEIVE_BOOT_COMPLETED`, `WAKE_LOCK` | 21+ | SDK | not required |
+| `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION` | 21+ | SDK | **application** |
+| `ACCESS_BACKGROUND_LOCATION` | 29+ | **application** | **application** |
+| `BLUETOOTH`, `BLUETOOTH_ADMIN` | 21–30 | SDK | not required |
+| `BLUETOOTH_SCAN` | 31+ | **application** | **application** |
+| `POST_NOTIFICATIONS` | 33+ | SDK | **application** |
+| `com.google.android.gms.permission.AD_ID` | 21+ | SDK | not required |
+
+`BLUETOOTH_CONNECT` is deliberately absent: the SDK scans but never connects to a device.
+
+Permissions marked as declared by the **application** are sensitive ones the SDK keeps out of its
+own manifest on purpose, so that applications not using the corresponding feature do not inherit
+them and do not have to justify or strip them.
+
+### 🔒 Network security
+
+Every endpoint the SDK contacts is HTTPS, and it never falls back to cleartext. On
+`targetSdk >= 28` Android already refuses cleartext traffic by default, so an application
+embedding the SDK needs no configuration for the SDK's own traffic to be safe.
+
+#### Why the SDK does not ship a network security configuration
+
+`android:networkSecurityConfig` and `android:usesCleartextTraffic` are **single-valued attributes**
+of the `<application>` element. If the SDK declared either of them, the manifest merger would fail
+for every application that already declares its own:
+
+```
+Manifest merger failed : Attribute application@networkSecurityConfig
+value=(@xml/your_config) from AndroidManifest.xml
+Suggestion: add 'tools:replace="android:networkSecurityConfig"' to <application> element
+```
+
+Applications would have to add `tools:replace` just to keep building, and the SDK would be
+overriding a security decision that belongs to the host application. So the SDK declares neither,
+and the recommended configuration is documented here instead.
+
+#### Recommended configuration
+
+If your application does not already have one, this is a configuration that works with the SDK.
+Create `res/xml/network_security_config.xml`:
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
+```
+
+and reference it from your `<application>` element:
+
+```xml
+<application android:networkSecurityConfig="@xml/network_security_config">
+```
+
+Cleartext is refused everywhere, only the system trust anchors are accepted, and Certificate
+Transparency is left at its default with no opt-out. The sample application ships exactly this file
+as a reference.
+
+If you already have a configuration of your own, nothing needs to change on the SDK's account, as
+long as the SDK endpoints are reachable over HTTPS with the system trust anchors. Note in particular
+that a `debug-overrides` block adding a user-installed CA applies to debug builds only and does not
+affect the SDK in release.
+
+#### Certificate Transparency
+
+From Android 16 the platform enforces Certificate Transparency by default for applications
+targeting the new API level: a certificate presented over HTTPS has to carry Signed Certificate
+Timestamps proving it was published to public CT logs, or the connection is refused. This applies
+to everything the SDK fetches, because both the API client and the notification image downloader
+go through `HttpURLConnection`.
+
+The SDK's own endpoints are compliant and need nothing from you.
+
+What is worth checking is any host **you** control that the SDK ends up reaching — most often the
+server that hosts the images attached to your campaigns. A certificate without SCTs makes the
+image download fail; the notification is still delivered, but without its picture, and the only
+trace is a line in the log:
+
+```
+Failed to download notification image from https://…
+```
+
+To check a host, look for embedded SCTs in the certificate it serves:
+
+```bash
+echo | openssl s_client -connect example.com:443 -servername example.com 2>/dev/null \
+  | openssl x509 -text -noout | grep -c "Log ID"
+```
+
+Two or more, from logs run by different operators, is what the policy expects. Any certificate
+issued by a public CA in recent years satisfies this without special handling; a certificate
+issued by a private or internal CA does not, and that is the case to watch for.
 
 ### 👤 Tracking user identifier
 
@@ -586,6 +742,161 @@ ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
 
 ```
 
+#### When jobs do not run on time
+
+The SDK schedules five periodic jobs: configuration refresh, trace upload, place
+status, WiFi scan and database cleanup. Android applies runtime quotas to them,
+more strictly from Android 16 onwards and regardless of whether a foreground
+service is running, so the system can defer or stop a job that was due.
+
+The symptom is not an error: deliveries simply arrive later, or less often. To
+make that attributable the SDK logs it at `WARN`, which is the default log level,
+so no extra configuration is needed to see it:
+
+```
+Job TracesJob was held back at 09:14:32: out of job execution quota
+Job ConfigurationJob was stopped by the system before finishing: exceeded its maximum execution time
+```
+
+The first line comes from the system's own record of why a job stayed pending and
+is available from Android 16; the second is reported from Android 12 onwards.
+Neither is actionable from inside the SDK — they describe decisions the platform
+has already taken — but they turn a vague "fewer notifications than before" into
+something that can be traced to a cause.
+
+---
+
+## 🧪 Testing with a simulated location
+
+Triggering a delivery on an emulator takes more than typing coordinates into the
+emulator UI. The SDK requests positions through `FusedLocationProviderClient` with
+[balanced power accuracy][priority-balanced] — a priority that relies on network and
+WiFi positioning and never powers the GPS. A position injected into the emulated GPS
+provider, which is what `adb emu geo fix` does, is therefore never read.
+
+When the device cannot satisfy the request, the SDK logs:
+
+```
+GMSLocationClient Resolvable Api Exception: RESOLUTION_REQUIRED
+```
+
+This is the [location settings check][location-settings] reporting the problem, not a
+failure of the SDK: on a stock emulator image only the `gps` provider is enabled, and
+the *Google Location Accuracy* toggle that would add network positioning lives in the
+`partner` settings namespace, which cannot be written from the shell.
+
+### Injecting a position the SDK will read
+
+Register [test providers][test-providers] and feed them directly. The shell needs the
+`MOCK_LOCATION` app operation first, otherwise every command fails with
+`SecurityException: android from uid 2000 not allowed to perform MOCK_LOCATION`.
+
+```bash
+adb shell appops set com.android.shell android:mock_location allow
+
+# Replace with coordinates covered by the campaign you want to test
+LOC="45.46427,9.18951"
+
+for PROVIDER in fused gps network; do
+  adb shell cmd location providers add-test-provider "$PROVIDER"
+  adb shell cmd location providers set-test-provider-enabled "$PROVIDER" true
+  adb shell cmd location providers set-test-provider-location "$PROVIDER" \
+      --location "$LOC" --accuracy 10
+done
+```
+
+Two details decide whether this works:
+
+* **`fused` is the provider that matters.** Feeding only `gps` reproduces exactly the
+  problem described above.
+* **The argument is `--location <latitude>,<longitude>`.** The `--latitude` and
+  `--longitude` flags found in older guides are rejected with `Unknown option`.
+
+Check that the position was accepted:
+
+```bash
+adb shell dumpsys location | grep 'last location=Location\[fused'
+```
+
+The `et=` field holds the elapsed time of the fix. If it does not advance between two
+reads, no new position is reaching the device.
+
+### Re-entering a geofence
+
+Place status is persisted, so pushing the same coordinates a second time produces
+nothing — the SDK has already recorded the entry. A new `enter` event needs a real
+exit first: move the device away, keep it there long enough for the exits to be
+processed, then come back.
+
+```bash
+FAR="41.90278,12.49637"      # anywhere well outside the test area
+TARGET="45.46427,9.18951"
+
+set_location() {
+  for PROVIDER in fused gps network; do
+    adb shell cmd location providers set-test-provider-location "$PROVIDER" \
+        --location "$1" --accuracy 10 > /dev/null
+  done
+}
+
+for i in $(seq 1 24); do set_location "$FAR"; sleep 20; done     # leave
+for i in $(seq 1 15); do set_location "$TARGET"; sleep 20; done  # return
+```
+
+A single faraway fix is not enough: the SDK evaluates place status periodically
+rather than on every position, so the device has to stay outside the area for several
+minutes before the exits are recorded.
+
+### When the campaign stops serving
+
+A campaign is delivered to a given device only once. After that the advertising
+endpoint answers `404`, which the SDK treats as *no campaign available* and discards
+silently — so the symptom is an absence of notifications rather than an error.
+
+Clearing the application data regenerates the device identifier and the campaign is
+served again. Runtime permissions can be restored from the shell:
+
+```bash
+APP_ID=your.application.id
+
+adb shell pm clear "$APP_ID"
+adb shell pm grant "$APP_ID" android.permission.ACCESS_FINE_LOCATION
+adb shell pm grant "$APP_ID" android.permission.ACCESS_COARSE_LOCATION
+adb shell pm grant "$APP_ID" android.permission.ACCESS_BACKGROUND_LOCATION
+adb shell pm grant "$APP_ID" android.permission.POST_NOTIFICATIONS
+```
+
+Consents are not permissions and are not restored this way. Re-enable them from the
+application, or set them programmatically before the test — see
+[🛡 GDPR Consent](#-gdpr-consent):
+
+```java
+ProximitySDK sdk = ProximitySDK.getInstance();
+sdk.setManualConsent(ManualConsent.Profiling, true);
+sdk.setManualConsent(ManualConsent.Monitoring, true);
+sdk.setManualConsent(ManualConsent.Advertising, true);
+sdk.setManualConsent(ManualConsent.AdvancedTracking, true);
+```
+
+### Reading the outcome
+
+With verbose logging enabled — see [🔧 Initialization](#-initialization) — the whole
+delivery chain is visible in the log:
+
+| Log line | Meaning |
+|----------|---------|
+| `Geofence <id> distance = <n> meters` | the position reached the SDK and the area was evaluated |
+| `AdvManager.response = Success(status=200)` | the platform returned a campaign |
+| `AdvManager.response = ServerError(status=404)` | no campaign available for this device and place |
+| `Displayed notification with ID <id> for ADV '<message>'` | the notification was posted |
+| `Failed to build or display notification` | the notification could not be built |
+
+Confirm what actually reached the notification drawer with:
+
+```bash
+adb shell dumpsys notification | grep "pkg=$APP_ID"
+```
+
 ---
 
 [kotlin]: https://kotlinlang.org/
@@ -597,9 +908,13 @@ ProximitySDK.init(this, "YOUR_API_KEY", "YOUR_API_SECRET");
 [access-coarse-location]: https://developer.android.com/reference/android/Manifest.permission#ACCESS_COARSE_LOCATION
 [post-notifications]: https://developer.android.com/reference/android/Manifest.permission#POST_NOTIFICATIONS
 [access-background-location]: https://developer.android.com/reference/android/Manifest.permission#ACCESS_BACKGROUND_LOCATION
+[bluetooth-scan]: https://developer.android.com/reference/android/Manifest.permission#BLUETOOTH_SCAN
 [android-asset-studio]: https://romannurik.github.io/AndroidAssetStudio/icons-notification.html
 [job-services]: https://developer.android.com/reference/android/app/job/jobscheduler
 [hms-core]: https://developer.huawei.com/consumer/en/doc/start/integrate-hms-core-0000001053032045
 [huawei-ads-kit]: https://developer.huawei.com/consumer/en/doc/development/HMSCore-Guides/publisher-service-introduction-0000001070671805
 [huawei-location-kit]: https://developer.huawei.com/consumer/en/doc/development/HMSCore-Guides/introduction-0000001050706106
 [jcenter-migration]: https://developer.android.com/studio/build/jcenter-migration
+[priority-balanced]: https://developers.google.com/android/reference/com/google/android/gms/location/Priority#PRIORITY_BALANCED_POWER_ACCURACY
+[location-settings]: https://developers.google.com/android/reference/com/google/android/gms/location/SettingsClient
+[test-providers]: https://developer.android.com/reference/android/location/LocationManager#addTestProvider(java.lang.String,%20boolean,%20boolean,%20boolean,%20boolean,%20boolean,%20boolean,%20boolean,%20int,%20int)
