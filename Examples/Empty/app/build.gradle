@@ -1,17 +1,17 @@
-apply plugin: 'com.android.application'
-repositories {
-    // Library repository
-    maven { url "https://artifactory.jointag.com/artifactory/jointag" }
-    // Next14CMP repository
-    maven { url "https://artifactory.jointag.com/artifactory/next14" }
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
 }
+
 android {
     namespace = "com.jointag.proximity.examples.empty"
-    compileSdk 34
+    // The SDK is compiled against API 36, so anything depending on it has to compile
+    // against 36 or later.
+    compileSdk 36
     defaultConfig {
         applicationId "com.jointag.proximity.examples.empty"
         minSdk 21
-        targetSdk 34
+        targetSdk 36
         versionCode 3
         versionName "1.0"
     }
@@ -21,9 +21,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    // The SDK is built for the JVM 17 target; a module on Java 8 cannot read its classes.
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
     flavorDimensions = ["service"]
     // Different product flavour based on which service platform you want to use
@@ -42,19 +46,19 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation('androidx.appcompat:appcompat:1.5.1')
-    implementation('com.google.android.material:material:1.6.1')
-    implementation('androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1')
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.preference
+    implementation libs.material
+    implementation libs.cmp.sdk
+
     // For Google Play Services
-    gmsImplementation("com.jointag:proximitysdk:1.21.0")
+    gmsImplementation libs.proximitysdk
 
     // For Huawei Mobile Services
-    huaweiImplementation("com.huawei.hms:ads-identifier:3.4.41.302")
-    huaweiImplementation("com.huawei.hms:location:4.0.0.300")
-    huaweiImplementation('com.jointag:proximitysdk:1.21.0') {
-        exclude(group: "com.google.android.gms")
+    huaweiImplementation libs.hms.ads.identifier
+    huaweiImplementation libs.hms.location
+    huaweiImplementation(libs.proximitysdk) {
+        exclude group: "com.google.android.gms"
     }
-
-    implementation('com.next14.cmp:cmp-sdk:2.0.0')
 }
