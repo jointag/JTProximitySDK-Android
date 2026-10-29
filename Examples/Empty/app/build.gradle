@@ -47,12 +47,12 @@ dependencies {
     implementation('com.google.android.material:material:1.6.1')
     implementation('androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1')
     // For Google Play Services
-    gmsImplementation("com.jointag:proximitysdk:1.19.+")
+    gmsImplementation("com.jointag:proximitysdk:1.21.0")
 
     // For Huawei Mobile Services
     huaweiImplementation("com.huawei.hms:ads-identifier:3.4.41.302")
     huaweiImplementation("com.huawei.hms:location:4.0.0.300")
-    huaweiImplementation('com.jointag:proximitysdk:1.19.+') {
+    huaweiImplementation('com.jointag:proximitysdk:1.21.0') {
         exclude(group: "com.google.android.gms")
     }
 
